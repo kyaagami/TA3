@@ -1,0 +1,45 @@
+{
+  "name": "procspy-server",
+  "version": "1.0.0",
+  "description": "server side for procspy",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "node dist/server.js",
+    "build": "rimraf dist && cpx \"src/public/**/*\" dist/public && tsc -p tsconfig-build.json ",
+    "build:watch": "npm run build -- --watch",
+    "dev": "nodemon -L --watch ./dist ./dist/main/server.js"
+  },
+  "author": "Reza1290",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.13.5",
+    "@types/validator": "^13.12.2",
+    "cpx": "^1.5.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "rimraf": "^6.0.1"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "module-alias": "^2.2.3",
+    "mongodb": "^6.13.1",
+    "multer": "^1.4.5-lts.2",
+    "typescript": "^5.7.3",
+    "validator": "^13.12.0"
+  },
+  "_moduleAliases": {
+    "@domain": "dist/domain",
+    "@application": "dist/application",
+    "@infra": "dist/infra",
+    "@main": "dist/main"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx"
+, "src/app/login/page.tsx", "src/app/login/components/InputForm.jsx", "src/app/login/components/SubmitButton.jsx", "src/middleware.js", "src/app/api/session/route.js", "src/app/dashboard/proctored_users/page.tsx", "src/app/dashboard/sessions/[userId]/page.js", "src/app/dashboard/settings/page.tsx", "src/app/dashboard/room/ui/SideBarLog.jsx", "src/app/dashboard/room/lib/flagtype.js", "src/app/dashboard/room/[roomId]/[socketId]/page.tsx", "src/app/dashboard/proctored_users/[userId]/analytics/[token]/page.tsx"  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
