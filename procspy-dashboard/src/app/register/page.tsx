@@ -1,19 +1,16 @@
 "use client"
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Mail, Lock, LogIn, ArrowLeft } from "lucide-react";
+import Image from "next/image"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Mail, Lock, LogIn, ArrowLeft, User, AtSign } from "lucide-react"
 
-export default function Page() {
+export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
-    const [rememberMe, setRememberMe] = useState(false)
     const [mounted, setMounted] = useState(false)
-
     const router = useRouter()
 
     useEffect(() => {
-        // Trigger entrance animation after mount
         const t = setTimeout(() => setMounted(true), 50)
         return () => clearTimeout(t)
     }, [])
@@ -21,34 +18,32 @@ export default function Page() {
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setIsLoading(true)
+        setErrorMessage('')
 
         try {
-            const formObject: Record<string, string> = {}
             const formData = new FormData(e.currentTarget)
-            formData.forEach((value, key) => {
-                formObject[key] = value.toString();
-            });
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/login`, {
+            const body = {
+                username: formData.get('username')?.toString() || '',
+                name: formData.get('name')?.toString() || '',
+                email: formData.get('email')?.toString() || '',
+                password: formData.get('password')?.toString() || '',
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/register`, {
                 method: 'POST',
-                body: JSON.stringify(formObject),
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: 'include'
+                body: JSON.stringify(body),
+                headers: { "Content-Type": "application/json" },
             })
 
             const data = await response.json()
             if (response.ok) {
-                if (data.authenticationToken) {
-                    router.push('/dashboard')
-                } else {
-                    setErrorMessage(data.error)
-                }
+                router.push('/login')
             } else {
-                setErrorMessage(data.error)
+                setErrorMessage(data.error || 'Pendaftaran gagal')
             }
         } catch (e) {
             console.error(e)
+            setErrorMessage('Terjadi kesalahan, coba lagi')
         } finally {
             setIsLoading(false)
         }
@@ -68,10 +63,7 @@ export default function Page() {
             {/* Purple overlay */}
             <div
                 className="absolute inset-0 bg-indigo-500/60"
-                style={{
-                    opacity: mounted ? 1 : 0,
-                    transition: "opacity 0.8s ease",
-                }}
+                style={{ opacity: mounted ? 1 : 0, transition: "opacity 0.8s ease" }}
             />
 
             {/* Decorative blobs */}
@@ -93,7 +85,7 @@ export default function Page() {
             />
             <div className="absolute top-1/2 left-8 w-40 h-40 bg-white/10 rounded-full blur-xl" />
 
-            {/* Back Button — top-left corner */}
+            {/* Back Button */}
             <a
                 href="https://localhost:800"
                 className="absolute top-5 left-5 z-20 flex items-center gap-2 text-white/80 hover:text-white text-sm font-medium px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all duration-200"
@@ -125,7 +117,7 @@ export default function Page() {
                         transition: "opacity 0.5s ease 0.5s, transform 0.5s ease 0.5s",
                     }}
                 >
-                    Masuk ke ProcSpy
+                    Daftar ke ProcSpy
                 </h1>
                 <p
                     className="text-center text-sm text-gray-400 mb-8 leading-snug"
@@ -135,18 +127,50 @@ export default function Page() {
                         transition: "opacity 0.5s ease 0.6s, transform 0.5s ease 0.6s",
                     }}
                 >
-                    Sistem Pengawasan Ujian Online<br />Terpercaya
+                    Buat akun proctor baru
                 </p>
 
-                <form onSubmit={onSubmit} className="flex flex-col gap-5">
-                    {/* Email Field */}
+                <form onSubmit={onSubmit} className="flex flex-col gap-4">
+                    {/* Username */}
                     <div
                         className="flex flex-col gap-1.5"
-                        style={{
-                            opacity: mounted ? 1 : 0,
-                            transform: mounted ? "translateY(0)" : "translateY(12px)",
-                            transition: "opacity 0.5s ease 0.7s, transform 0.5s ease 0.7s",
-                        }}
+                        style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "opacity 0.5s ease 0.65s, transform 0.5s ease 0.65s" }}
+                    >
+                        <label className="text-sm font-medium text-gray-700">Username</label>
+                        <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+                            <AtSign className="w-4 h-4 text-indigo-400 shrink-0" />
+                            <input
+                                type="text"
+                                name="username"
+                                placeholder="Masukan username"
+                                required
+                                className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-300 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Name */}
+                    <div
+                        className="flex flex-col gap-1.5"
+                        style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "opacity 0.5s ease 0.7s, transform 0.5s ease 0.7s" }}
+                    >
+                        <label className="text-sm font-medium text-gray-700">Nama Lengkap</label>
+                        <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+                            <User className="w-4 h-4 text-indigo-400 shrink-0" />
+                            <input
+                                type="text"
+                                name="name"
+                                placeholder="Masukan nama lengkap"
+                                required
+                                className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-300 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Email */}
+                    <div
+                        className="flex flex-col gap-1.5"
+                        style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "opacity 0.5s ease 0.75s, transform 0.5s ease 0.75s" }}
                     >
                         <label className="text-sm font-medium text-gray-700">Email</label>
                         <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
@@ -154,21 +178,17 @@ export default function Page() {
                             <input
                                 type="email"
                                 name="email"
-                                placeholder="Masukan email Anda"
+                                placeholder="Masukan email"
                                 required
                                 className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-300 outline-none"
                             />
                         </div>
                     </div>
 
-                    {/* Password Field */}
+                    {/* Password */}
                     <div
                         className="flex flex-col gap-1.5"
-                        style={{
-                            opacity: mounted ? 1 : 0,
-                            transform: mounted ? "translateY(0)" : "translateY(12px)",
-                            transition: "opacity 0.5s ease 0.8s, transform 0.5s ease 0.8s",
-                        }}
+                        style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "opacity 0.5s ease 0.8s, transform 0.5s ease 0.8s" }}
                     >
                         <label className="text-sm font-medium text-gray-700">Password</label>
                         <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
@@ -176,46 +196,21 @@ export default function Page() {
                             <input
                                 type="password"
                                 name="password"
-                                placeholder="Masukan Password Anda"
+                                placeholder="Masukan password"
                                 required
                                 className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-300 outline-none"
                             />
                         </div>
                     </div>
 
-                    {/* Remember Me */}
-                    <div
-                        className="flex items-center gap-2"
-                        style={{
-                            opacity: mounted ? 1 : 0,
-                            transition: "opacity 0.5s ease 0.9s",
-                        }}
-                    >
-                        <input
-                            type="checkbox"
-                            id="rememberMe"
-                            name="rememberMe"
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
-                            className="w-4 h-4 rounded border-gray-300 accent-indigo-600 cursor-pointer"
-                        />
-                        <label htmlFor="rememberMe" className="text-sm text-gray-600 cursor-pointer select-none">
-                            Ingat saya
-                        </label>
-                    </div>
-
-                    {/* Error Message */}
+                    {/* Error */}
                     {errorMessage && (
-                        <p className="text-xs text-red-500 italic -mt-2">{errorMessage}</p>
+                        <p className="text-xs text-red-500 italic -mt-1">{errorMessage}</p>
                     )}
 
-                    {/* Submit Button */}
+                    {/* Submit */}
                     <div
-                        style={{
-                            opacity: mounted ? 1 : 0,
-                            transform: mounted ? "translateY(0)" : "translateY(10px)",
-                            transition: "opacity 0.5s ease 1s, transform 0.5s ease 1s",
-                        }}
+                        style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(10px)", transition: "opacity 0.5s ease 0.9s, transform 0.5s ease 0.9s" }}
                     >
                         <button
                             type="submit"
@@ -223,21 +218,18 @@ export default function Page() {
                             className="flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-60 text-white font-semibold text-base rounded-xl py-3.5 transition-colors duration-200 shadow-md shadow-indigo-200"
                         >
                             <LogIn className="w-5 h-5" />
-                            {isLoading ? 'Memuat...' : 'Masuk'}
+                            {isLoading ? 'Mendaftar...' : 'Daftar'}
                         </button>
                     </div>
 
-                    {/* Register Link */}
+                    {/* Login link */}
                     <p
                         className="text-center text-sm text-gray-500"
-                        style={{
-                            opacity: mounted ? 1 : 0,
-                            transition: "opacity 0.5s ease 1.1s",
-                        }}
+                        style={{ opacity: mounted ? 1 : 0, transition: "opacity 0.5s ease 1s" }}
                     >
-                        Belum punya akun?{" "}
-                        <a href="/register" className="text-indigo-500 hover:text-indigo-700 font-medium transition-colors">
-                            Daftar sekarang
+                        Sudah punya akun?{" "}
+                        <a href="/login" className="text-indigo-500 hover:text-indigo-700 font-medium transition-colors">
+                            Masuk sekarang
                         </a>
                     </p>
                 </form>

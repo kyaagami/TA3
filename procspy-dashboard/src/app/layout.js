@@ -1,9 +1,9 @@
-import { Inter, Poppins } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import Head from "next/head";
 import { ModalProvider } from "../context/ModalProvider";
 import { SideSheetProvider } from "../context/SideSheetProvider";
-
+import { ThemeProvider } from "./dashboard/providers/ThemeProvider";
 
 const font = Poppins({
   subsets: ['latin'],
@@ -19,19 +19,19 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <Head>
         <script src="https://kit.fontawesome.com/fc6a744dc7.js" crossorigin="anonymous"></script>
       </Head>
-      <body
-        className={`${font.variable} ${font.className} antialiased `}
-      >
-        <SideSheetProvider>
-          <ModalProvider>
-            {children}
-          </ModalProvider>
-        </SideSheetProvider>
+      <body className={`${font.variable} ${font.className} antialiased`}>
+        <ThemeProvider>
+          <SideSheetProvider>
+            <ModalProvider>
+              {children}
+            </ModalProvider>
+          </SideSheetProvider>
+        </ThemeProvider>
       </body>
-    </html >
+    </html>
   );
 }

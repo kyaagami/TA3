@@ -36,7 +36,7 @@ export default function AnalyticsPage() {
         try {
             const jwt = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://0.0.0.0:5050"}/api/logs-proctored-user/${token}?page=${nextPage}&paginationLimit=${limit}`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://10.252.130.112:5050"}/api/logs-proctored-user/${token}?page=${nextPage}&paginationLimit=${limit}`,
                 {
                     headers: {
                         Authorization: `Bearer ${jwt}`,
@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
         try {
             const jwt = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://0.0.0.0:5050"}/api/session-result-token/${token}`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://10.252.130.112:5050"}/api/session-result-token/${token}`,
                 {
                     headers: {
                         Authorization: `Bearer ${jwt}`,
@@ -184,7 +184,7 @@ export default function AnalyticsPage() {
     const fetchGlobalSetting = async () => {
             try {
                 const token = await session();
-                const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://0.0.0.0:5050'}/api/global-settings?page=1&paginationLimit=1`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/global-settings?page=1&paginationLimit=1`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -257,7 +257,7 @@ export default function AnalyticsPage() {
                         <div className="w-full h-full flex justify-center items-center">
                             {
                                 renderedFile ? <div className="max-h-[45vh] min-h-[45vh] border aspect-video rounded">
-                                    <img className="rounded-md" src={`${process.env.NEXT_PUBLIC_STORAGE_ENDPOINT || 'https://0.0.0.0:5050'}` + renderedFile} alt=""
+                                    <img className="rounded-md" src={`${process.env.NEXT_PUBLIC_STORAGE_ENDPOINT || 'https://10.252.130.112:5050'}` + renderedFile} alt=""
 
                                     />
                                 </div> : <div className="text-xs">No Image</div>

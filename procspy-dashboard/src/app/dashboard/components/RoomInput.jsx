@@ -14,7 +14,7 @@ const RoomInput = () => {
     const handleJoinRoom = async() => {
         try {
             const token = await session()
-            const response = await fetch(`${ process.env.NEXT_PUBLIC_ENDPOINT || 'https://0.0.0.0:5050'}/api/room`,
+            const response = await fetch(`${ process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/room`,
                 {
                     method: "POST",
                     body: JSON.stringify({

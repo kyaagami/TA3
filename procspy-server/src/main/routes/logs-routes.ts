@@ -8,6 +8,8 @@ import { makeGetProctoredUserDetailLogByTokenController } from "@main/factories/
 import { makeGetLogsByRoomIdController } from "@main/factories/controllers/logs/get-logs-by-room-id/controller-factory";
 import { makeGetLogsByTokenController } from "@main/factories/controllers/logs/get-logs-by-token/controller-factory";
 import { makeUpdateLogByIdController } from "@main/factories/controllers/logs/update-log-by-id/controller-factory";
+import { makeGetRecentLogsController } from "@main/factories/controllers/logs/get-recent-logs/controller-factory"
+
 
 
 export default(router: Router): void => {
@@ -18,4 +20,5 @@ export default(router: Router): void => {
     router.get('/logs-proctored-user/:token', authMiddleware, expressRouteAdapter(makeGetLogsByTokenController()))
 
     router.post('/update-log-type', authMiddleware, expressRouteAdapter(makeUpdateLogByIdController()))
+    router.get('/logs-recent', authMiddleware, expressRouteAdapter(makeGetRecentLogsController()))
 }

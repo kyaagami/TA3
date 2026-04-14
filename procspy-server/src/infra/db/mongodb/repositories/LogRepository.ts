@@ -8,16 +8,16 @@ import { GetLogsByRoomIdRepository } from "@application/interfaces/repositories/
 import { EnrichedLog } from "@application/interfaces/use-cases/logs/GetLogsByRoomIdInterface";
 import { UpdateLogRepository } from "@application/interfaces/repositories/logs/UpdateLogRepository";
 import { GetLogByIdRepository } from "@application/interfaces/repositories/logs/GetLogByIdRepository";
-
-
-
+import { GetRecentLogsRepository } from "@application/interfaces/repositories/logs/GetRecentLogsRepository"
 
 export class LogRepository implements
     CreateLogRepository,
     GetLogsBySessionIdRepository,
     GetLogsByRoomIdRepository,
     UpdateLogRepository,
-    GetLogByIdRepository {
+    GetLogByIdRepository,
+    GetRecentLogsRepository {
+
     static async getCollection(): Promise<Collection> {
         return dbConnection.getCollection('logs')
     }
@@ -32,7 +32,7 @@ export class LogRepository implements
     async createLog(logData: CreateLogRepository.Request): Promise<CreateLogRepository.Response> {
         const collection = await LogRepository.getCollection()
         const { insertedId } = await collection.insertOne({ ...logData, timestamp: new Date() })
-        const rawLogResult = await collection.findOne({ _id : insertedId })
+        const rawLogResult = await collection.findOne({ _id: insertedId })
         return rawLogResult && mapDocument(rawLogResult)
     }
 
@@ -158,7 +158,6 @@ export class LogRepository implements
 
         const countResult = await collection.aggregate(countPipeline).toArray();
         const total = countResult[0]?.total ?? 0;
-
         const totalPages = Math.ceil(total / paginationLimit);
 
         return {
@@ -178,12 +177,49 @@ export class LogRepository implements
         }
 
         const objId = stringToObjectId(id)
-
         const filter = { _id: objId }
-
         const result = await collection.updateOne(filter, { $set: updatedLogData })
-
         const rawLog = await collection.findOne(filter)
         return rawLog && mapDocument(rawLog)
+    }
+
+    async getRecentLogs(params: GetRecentLogsRepository.Request): Promise<GetRecentLogsRepository.Response> {
+        const collection = await LogRepository.getCollection()
+        const { limit } = params
+
+        const pipeline: Array<any> = [
+            { $sort: { timestamp: -1 } },
+            { $limit: Number(limit) },
+            {
+                $lookup: {
+                    from: "flags",
+                    localField: "flagKey",
+                    foreignField: "flagKey",
+                    as: "flag"
+                }
+            },
+            {
+                $unwind: { path: "$flag", preserveNullAndEmptyArrays: true }
+            },
+            {
+                $addFields: {
+                    sessionIdObj: { $toObjectId: "$sessionId" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "sessions",
+                    localField: "sessionIdObj",
+                    foreignField: "_id",
+                    as: "session"
+                }
+            },
+            {
+                $unwind: { path: "$session", preserveNullAndEmptyArrays: true }
+            }
+        ]
+
+        const logs = await collection.aggregate(pipeline).toArray()
+        return mapCollection(logs)
     }
 }

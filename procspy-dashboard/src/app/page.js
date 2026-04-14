@@ -157,9 +157,9 @@ export default function Home() {
               <Link href="/login" className="text-gray-700 text-sm font-medium hover:text-indigo-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-indigo-50">
                 Masuk
               </Link>
-              <button className="bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-all duration-150 shadow-md shadow-indigo-200">
+              <Link href="/register" className="bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-all duration-150 shadow-md shadow-indigo-200">
                 Daftar
-              </button>
+              </Link>
             </div>
 
             <button className="md:hidden text-gray-700 p-1 rounded-lg hover:bg-gray-100 transition-colors"
@@ -339,9 +339,9 @@ export default function Home() {
                 className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3.5 rounded-xl transition-all hover:scale-105 inline-block">
                 Masuk ke Akun
               </Link>
-              <button className="border-2 border-white text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-white hover:text-indigo-900 transition-all hover:scale-105">
+              <Link href="/register" className="border-2 border-white text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-white hover:text-indigo-900 transition-all hover:scale-105">
                 Daftar Gratis
-              </button>
+              </Link>
             </div>
           </div>
         </section>

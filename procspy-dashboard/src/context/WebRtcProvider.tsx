@@ -117,10 +117,13 @@ export const WebRtcProvider = ({ children }) => {
             socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL + '/mediasoup', {
                 auth: {
                     secretAdmin: "SECRETBANGET"
-                }
+                },
+                transports: ['websocket'],
+                upgrade: false
             })
 
             socketRef.current.on('connection-success', ({ socketId }) => {
+                console.log('🟢 CONNECTED socketId:', socketId)
                 joinRoomConsumer()
             })
 
@@ -184,7 +187,9 @@ export const WebRtcProvider = ({ children }) => {
 
     const joinRoomConsumer = () => {
         const currentSocket = socketRef.current
+        console.log('🔵 joinRoom roomId:', data.roomId)
         socketRef.current.emit('joinRoom', { roomId: data.roomId, isAdmin: true, socketId: currentSocket.id }, ({ rtpCapabilities }) => {
+            console.log('✅ rtpCapabilities received')
             createDeviceConsumer(rtpCapabilities)
         })
     }
@@ -307,7 +312,7 @@ export const WebRtcProvider = ({ children }) => {
 
     const getProducers = () => {
         socketRef.current.emit('getProducers', (producerIds: Array<string>) => {
-            console.log(producerIds)
+            console.log('📦 producerIds:', producerIds)
             producerIds.forEach(signalNewConsumerTransport)
         })
         console.log("CONNECTED")
@@ -373,9 +378,12 @@ export const WebRtcProvider = ({ children }) => {
             return;
         }
 
-        list.push(consumerData);
+        list.push(consumerData)
+
+        console.log(`📊 buffer for ${socketId}: ${list.length}/4`)
 
         if (list.length === 4) {
+            console.log('✅ 4 consumers ready!')
             const consumers = [...list];
             buffer.delete(socketId);
 

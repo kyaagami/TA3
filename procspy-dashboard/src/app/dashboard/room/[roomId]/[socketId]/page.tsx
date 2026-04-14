@@ -67,7 +67,7 @@ export default function Page() {
     const fetchUserInfo = async (token: string) => {
         try {
             const jwt = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://0.0.0.0:5050'}/api/proctored-user/${token}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/proctored-user/${token}`, {
                 headers: { Authorization: `Bearer ${jwt}` },
             });
             if (res.ok) {
@@ -83,7 +83,7 @@ export default function Page() {
     const fetchSessionResult = async (token: string) => {
         try {
             const jwt = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://0.0.0.0:5050'}/api/session-result-token/${token}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/session-result-token/${token}`, {
                 headers: { Authorization: `Bearer ${jwt}` },
             });
             if (res.ok) {

@@ -58,7 +58,7 @@ const SideBarLog = () => {
     const fetchLogFromToken = async (userToken) => {
         try {
             const token = await session()
-            const response = await fetch(`${ process.env.NEXT_PUBLIC_ENDPOINT || 'https://0.0.0.0:5050'}/api/proctored-user/${userToken}`, {
+            const response = await fetch(`${ process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/proctored-user/${userToken}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

@@ -12,7 +12,7 @@ const ConfirmLogButton = ({ id, currentLogType, callback}: { id: string, current
         setLoading(true)
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || "https://0.0.0.0:5050"}/api/update-log-type`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || "https://10.252.130.112:5050"}/api/update-log-type`,
                 {
                     method: "POST",
                     headers: {

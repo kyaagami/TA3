@@ -1,5 +1,4 @@
 'use client'
-import { useEffect, useState } from "react"
 import { useParams, usePathname, useRouter } from "next/navigation"
 import {
     CctvIcon, FlagIcon, HomeIcon, LogOutIcon, MonitorIcon,
@@ -23,17 +22,23 @@ function SideBarItem({ onClick, active, icon: Icon, label }: SideBarItemProps) {
         <button
             onClick={onClick}
             className={`
-                flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-medium
+                flex items-center gap-4 w-[198px] px-5 py-4 rounded-2xl text-base font-medium mx-auto
                 transition-all duration-200 group
                 ${active
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                    ? 'bg-[#4F46E5] text-white shadow-lg shadow-[#4F46E5]/25'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                 }
             `}
         >
             <Icon
-                size={18}
-                className={`flex-shrink-0 transition-colors duration-200 ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`}
+                size={20}
+                className={`
+                    flex-shrink-0 transition-all duration-200
+                    ${active
+                        ? 'text-white'
+                        : 'text-slate-400 dark:text-slate-500 group-hover:text-[#4F46E5] dark:group-hover:text-white group-hover:scale-110'
+                    }
+                `}
             />
             <span className="truncate">{label}</span>
         </button>
@@ -44,7 +49,6 @@ export default function SideBar() {
     const router = useRouter()
     const { roomId } = useParams()
     const pathname = usePathname()
-
     const { openModal } = useModal()
 
     const handleRedirect = (path: string) => {
@@ -83,18 +87,14 @@ export default function SideBar() {
     }
 
     return (
-        <div className="flex flex-col w-64 h-screen bg-white border-r border-slate-100 flex-shrink-0">
-
-            {/* Logo */}
-            <div className="flex items-center gap-3 px-5 h-16 border-b border-slate-100">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <img src="/image/logo.png" alt="ProcSpy Logo" className="w-5 h-5 object-contain brightness-0 invert" />
-                </div>
-                <span className="font-bold text-slate-800 text-base tracking-tight">ProcSpy</span>
-            </div>
-
+        <div className="
+            flex flex-col w-64 h-full flex-shrink-0
+            bg-white dark:bg-[#111318]
+            border-r border-black/5 dark:border-white/5
+            transition-colors duration-300
+        ">
             {/* Main nav */}
-            <nav className="flex flex-col flex-1 px-3 py-4 gap-1 overflow-y-auto">
+            <nav className="flex flex-col flex-1 px-3 py-4 gap-1">
                 <SideBarItem
                     onClick={() => handleActiveToggle('/dashboard/')}
                     active={pathname === '/dashboard' || pathname === '/dashboard/'}
@@ -140,8 +140,11 @@ export default function SideBar() {
                 />
             </nav>
 
+            {/* Divider */}
+            <div className="mx-4 border-t border-black/5 dark:border-white/5" />
+
             {/* Bottom nav */}
-            <div className="flex flex-col px-3 pb-4 gap-1 border-t border-slate-100 pt-3">
+            <div className="flex flex-col px-3 py-4 gap-1">
                 <SideBarItem
                     onClick={() => handleActiveToggle('/dashboard/proctors')}
                     active={pathname === '/dashboard/proctors'}

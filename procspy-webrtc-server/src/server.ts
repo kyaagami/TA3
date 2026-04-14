@@ -1,3 +1,7 @@
+import 'dotenv/config'
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+
 import express from 'express'
 import https from 'https'
 import http from 'http'
@@ -6,19 +10,14 @@ import { Server as SocketIOServer } from 'socket.io'
 import path from 'path'
 import indexRoutes from './routes/index-routes'
 import { handleSocketConnection, peers, transports } from './sockets/mediasoup-handler'
-import dotenv from 'dotenv';
 import { Socket } from 'dgram'
 import client, { Gauge } from 'prom-client'
-
-dotenv.config()
 
 const PORT = process.env.PORT || 3000
 
 console.log(process.env.PORT)
 let server
 const isProduction = process.env.NODE_ENV === 'production';
-
-
 
 const register = new client.Registry();
 client.collectDefaultMetrics({ register });
@@ -43,40 +42,35 @@ export const packetLossGauge = new Gauge({
 
 const metric = () => {
   setInterval(async () => {
-  for (const transport of transports.values()) {
-    try {
-      const statsArr = await transport.transport.getStats();
-      statsArr.forEach((stat: any) => {
-        const transportId = transport.transport.id;
+    for (const transport of transports.values()) {
+      try {
+        const statsArr = await transport.transport.getStats();
+        statsArr.forEach((stat: any) => {
+          const transportId = transport.transport.id;
 
-        if (stat.type === 'transport' || stat.type === 'webrtc-transport') {
-          if (stat.rtt !== undefined) {
-            rttGauge.set({ transport_id: transportId }, stat.rtt);
+          if (stat.type === 'transport' || stat.type === 'webrtc-transport') {
+            if (stat.rtt !== undefined) {
+              rttGauge.set({ transport_id: transportId }, stat.rtt);
+            }
+            if (stat.rtpPacketLossReceived !== undefined) {
+              packetLossGauge.set({ transport_id: transportId }, stat.rtpPacketLossReceived);
+            }
           }
-          if (stat.rtpPacketLossReceived !== undefined) {
-            packetLossGauge.set({ transport_id: transportId }, stat.rtpPacketLossReceived);
+
+          if (stat.type === 'outbound-rtp' && stat.bitrate !== undefined) {
+            bitrateGauge.set({ transport_id: transportId }, stat.bitrate);
           }
-        }
-
-        if (stat.type === 'outbound-rtp' && stat.bitrate !== undefined) {
-          bitrateGauge.set({ transport_id: transportId }, stat.bitrate);
-        }
-      });
-
-    } catch (err) {
-      console.error('Failed to fetch stats from transport:', err);
+        });
+      } catch (err) {
+        console.error('Failed to fetch stats from transport:', err);
+      }
     }
-  }
-}, 5000);
+  }, 5000);
 }
 
 register.registerMetric(bitrateGauge);
 register.registerMetric(rttGauge);
 register.registerMetric(packetLossGauge);
-
-
-
-
 
 const app = express()
 if (isProduction) {
@@ -93,7 +87,7 @@ if (isProduction) {
 
   server = https.createServer(sslOptions, app)
   server.listen(PORT, () => {
-    console.log(`Server using http proxied port ${PORT}`);
+    console.log(`Server using HTTPS port ${PORT}`);
   });
 }
 
@@ -109,7 +103,6 @@ app.get('/metrics', async (req, res) => {
     res.status(500).end(err.message);
   }
 });
-
 
 const io = new SocketIOServer(server, {
   maxHttpBufferSize: 2e9,
@@ -152,7 +145,6 @@ io.of('/mediasoup').use(async (socket, next) => {
     return next(new Error('Who Are You?[2]'))
   }
 
-
   next();
 });
 io.of('/mediasoup').on('connection', handleSocketConnection)
@@ -162,9 +154,8 @@ function isTokenAlreadyUsed(token: string): boolean {
 }
 
 const isOwnerOfTheToken = async (token: string, deviceId: string, userAgent: string, ipAddress: string): Promise<boolean> => {
-
   try {
-    const response = await fetch(`${process.env.ENDPOINT || 'https://192.168.68.225:5050'}/api/session-detail`, {
+    const response = await fetch(`${process.env.ENDPOINT || 'https://10.252.130.112:5050'}/api/session-detail`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
@@ -190,9 +181,8 @@ const isOwnerOfTheToken = async (token: string, deviceId: string, userAgent: str
 }
 
 const verifyToken = async (token: string): Promise<boolean> => {
-
   try {
-    const response = await fetch(`${process.env.ENDPOINT || "http://192.168.68.225:5050"}/api/signin/${token}`)
+    const response = await fetch(`${process.env.ENDPOINT || "http://10.252.130.112:5050"}/api/signin/${token}`)
 
     const data = await response.json()
     if (response.ok) {
@@ -201,7 +191,6 @@ const verifyToken = async (token: string): Promise<boolean> => {
       }
     }
     return false
-
   } catch (e) {
     console.error(e)
   }

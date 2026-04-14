@@ -1,17 +1,22 @@
-import { SideSheetProvider } from "../../context/SideSheetProvider";
-import SideBar from "./components/SideBar";
-import { SideBarLogProvider } from "./providers/SideBarLogProvider";
+import { SideSheetProvider } from "../../context/SideSheetProvider"
+import SideBar from "./components/SideBar"
+import Header from "./components/Header"
 
 export default function DashboardLayout({ children }) {
     return (
-        <section>
-            <section className={`w-full flex  dark:bg-gradient-to-r dark:from-black dark:to-slate-900/70 `}>
-                <SideBar />
-                <div className="w-full">
+        <section className="min-h-screen flex flex-col dark:bg-gradient-to-r dark:from-black dark:to-slate-900/70">
+            {/* Header full width di atas */}
+            <Header />
 
-                    {children}
-                </div>
-            </section>
+            {/* Sidebar + konten di bawah */}
+            <div className="flex flex-1">
+                <SideBar />
+                <SideSheetProvider>
+                    <div className="w-full">
+                        {children}
+                    </div>
+                </SideSheetProvider>
+            </div>
         </section>
-    );
+    )
 }
