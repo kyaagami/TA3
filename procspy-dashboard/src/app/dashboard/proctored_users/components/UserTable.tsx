@@ -34,7 +34,7 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
     setSelectedRoomId("");
     try {
       const token = await session();
-      const res = await fetch(`${ process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/rooms`,{
+      const res = await fetch(`${ process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/rooms`,{
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -58,7 +58,7 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
 
     try {
       const token = await session();
-      await fetch("https://10.252.130.112:5050/api/session/", {
+      await fetch("https://192.168.43.85:5050/api/session/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

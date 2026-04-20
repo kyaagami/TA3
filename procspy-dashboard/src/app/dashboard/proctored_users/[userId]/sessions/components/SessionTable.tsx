@@ -46,7 +46,7 @@ const SessionTable = () => {
     const fetchSessions = async (nextPage: number) => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/sessions/${userId}?page=${nextPage}&paginationLimit=20`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/sessions/${userId}?page=${nextPage}&paginationLimit=20`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -79,7 +79,7 @@ const SessionTable = () => {
     const fetchGlobalSetting = async () => {
         try {
             const token = await session();
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/global-settings?page=1&paginationLimit=1`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-settings?page=1&paginationLimit=1`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -109,7 +109,7 @@ const SessionTable = () => {
 
             const jwt = await session()
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/session/update-status-proctor/${token}/${state}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/session/update-status-proctor/${token}/${state}`, {
                 headers: {
                     Authorization: `Bearer ${jwt}`,
                 },
@@ -129,7 +129,7 @@ const SessionTable = () => {
     const fetchRooms = async () => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/rooms`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/rooms`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -181,7 +181,7 @@ const SessionTable = () => {
         const roomId = roomRef.current.value
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/session/`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/session/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

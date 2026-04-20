@@ -41,7 +41,7 @@ const ProctorTable = () => {
     const fetchProctor = async (nextPage: number) => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/users?page=${nextPage}&paginationLimit=20`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/users?page=${nextPage}&paginationLimit=20`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -89,7 +89,7 @@ const ProctorTable = () => {
     const deleteProctor = async (id: string) => {
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/user/${id}`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/user/${id}`,
                 {
                     method: "DELETE",
                     headers: {
@@ -194,7 +194,7 @@ const ProctorTable = () => {
         closeSheet()
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/register`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/register`,
                 {
                     method: "POST",
                     headers: {
@@ -251,7 +251,7 @@ const ProctorTable = () => {
         closeSheet()
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/user`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/user`,
                 {
                     method: "PUT",
                     headers: {
@@ -312,7 +312,7 @@ const ProctorTable = () => {
         closeSheet()
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/activate-user/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/activate-user/${id}`, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,

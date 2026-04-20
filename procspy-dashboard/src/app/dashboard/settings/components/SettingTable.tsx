@@ -32,7 +32,7 @@ const SettingTable = () => {
   const fetchSettings = async (nextPage: number) => {
     try {
       const token = await session();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/global-settings?page=${nextPage}&paginationLimit=12`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-settings?page=${nextPage}&paginationLimit=12`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -69,7 +69,7 @@ const SettingTable = () => {
 
     try {
       const token = await session();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/global-setting`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-setting`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +104,7 @@ const SettingTable = () => {
   const handleSaveEdit = async (setting: Setting) => {
     try {
       const token = await session();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/global-setting`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-setting`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -155,7 +155,7 @@ function isTokenAlreadyUsed(token: string): boolean {
 
 const isOwnerOfTheToken = async (token: string, deviceId: string, userAgent: string, ipAddress: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${process.env.ENDPOINT || 'https://10.252.130.112:5050'}/api/session-detail`, {
+    const response = await fetch(`${process.env.ENDPOINT || 'https://192.168.43.85:5050'}/api/session-detail`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
@@ -182,7 +182,7 @@ const isOwnerOfTheToken = async (token: string, deviceId: string, userAgent: str
 
 const verifyToken = async (token: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${process.env.ENDPOINT || "http://10.252.130.112:5050"}/api/signin/${token}`)
+    const response = await fetch(`${process.env.ENDPOINT || "http://192.168.43.85:5050"}/api/signin/${token}`)
 
     const data = await response.json()
     if (response.ok) {

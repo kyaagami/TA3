@@ -56,7 +56,7 @@ export default function Page() {
         try {
             const token = await session()
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/rooms?page=1&paginationLimit=10`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/rooms?page=1&paginationLimit=10`,
                 { headers: { Authorization: `Bearer ${token}` } }
             )
             const data = await res.json()
@@ -72,7 +72,7 @@ export default function Page() {
         try {
             const token = await session()
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/logs-recent?limit=8`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/logs-recent?limit=8`,
                 { headers: { Authorization: `Bearer ${token}` } }
             )
             const data = await res.json()

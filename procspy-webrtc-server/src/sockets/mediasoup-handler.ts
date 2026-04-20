@@ -96,7 +96,7 @@ init()
 
 const setSessionStatus = async (state: string, token: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${process.env.ENDPOINT || 'https://10.252.130.112:5050'}/api/session/update-status/${token}/${state}`, {
+    const response = await fetch(`${process.env.ENDPOINT || 'https://192.168.43.85:5050'}/api/session/update-status/${token}/${state}`, {
       method: "GET",
       headers: {
         'Content-Type': 'application/json',
@@ -587,7 +587,7 @@ export const handleSocketConnection = async (socket: Socket) => {
       }
       //TODO : CHECK NETWORK CHANGe BY IP ADRESS CHANGE
 
-      const response = await fetch(`${process.env.ENDPOINT || 'https://10.252.130.112:5050'}/api/session-detail`, {
+      const response = await fetch(`${process.env.ENDPOINT || 'https://192.168.43.85:5050'}/api/session-detail`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -630,7 +630,7 @@ export const handleSocketConnection = async (socket: Socket) => {
     try {
       process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-      const response = await fetch(`${process.env.ENDPOINT || 'https://10.252.130.112:5050'}/api/save-log`, {
+      const response = await fetch(`${process.env.ENDPOINT || 'https://192.168.43.85:5050'}/api/save-log`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -662,7 +662,7 @@ export const handleSocketConnection = async (socket: Socket) => {
     // formData.append('secret', `${process.env.SECRET || "SECRET"}`)
     try {
 
-      const response = await fetch(`${process.env.ENDPOINT || "https://10.252.130.112:5050"}/api/storage`, {
+      const response = await fetch(`${process.env.ENDPOINT || "https://192.168.43.85:5050"}/api/storage`, {
         method: "POST",
         headers: {
           'Authorization': `Secret ${process.env.SECRET || "SECRET"}`

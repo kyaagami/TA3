@@ -67,7 +67,7 @@ const LogsTable = () => {
         try {
             const token = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://10.252.130.112:5050"}/api/logs-in-room/${roomId}?page=${nextPage}&paginationLimit=20`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/logs-in-room/${roomId}?page=${nextPage}&paginationLimit=20`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -115,7 +115,7 @@ const LogsTable = () => {
         try {
             const token = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://10.252.130.112:5050"}/api/logs-in-room/${roomId}?page=1&paginationLimit=${count}`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/logs-in-room/${roomId}?page=1&paginationLimit=${count}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -231,7 +231,7 @@ export const BodyTable = memo(function BodyTable({ log }: { log: LogProps }) {
                     (log.attachment.file) && (
                         <>
                             <div className="flex justify-center items-center rounded-md font-normal bg-white/10 dark:border-white/15 p-2 border max-w-64 aspect-video overflow-hidden">
-                                <img className="rounded-md" src={`${process.env.NEXT_PUBLIC_STORAGE_ENDPOINT || 'https://10.252.130.112:5050'}` + log.attachment.file} alt="" />
+                                <img className="rounded-md" src={`${process.env.NEXT_PUBLIC_STORAGE_ENDPOINT || 'https://192.168.43.85:5050'}` + log.attachment.file} alt="" />
                             </div>
                         </>
                     )

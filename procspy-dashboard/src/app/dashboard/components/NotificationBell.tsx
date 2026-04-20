@@ -49,7 +49,7 @@ const NotificationBell = () => {
             const res = await fetch('/api/session')
             const { token } = await res.json()
             const res2 = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/logs-recent?limit=8`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/logs-recent?limit=8`,
                 { headers: { Authorization: `Bearer ${token}` } }
             )
             if (res2.ok) {

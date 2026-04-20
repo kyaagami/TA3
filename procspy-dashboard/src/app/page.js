@@ -129,20 +129,20 @@ export default function Home() {
           ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100"
                      : "bg-white/80 backdrop-blur-sm border-b border-transparent"}`}
         >
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a href="#home" onClick={(e) => handleNavClick(e, "home")} className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                <img src="/image/logo.png" alt="ProcSpy Logo" className="w-5 h-5 object-contain brightness-0 invert" />
+          <div className="max-w-[85%] mx-auto px-8 py-5 flex items-center justify-between">
+            <a href="#home" onClick={(e) => handleNavClick(e, "home")} className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center">
+                <img src="/image/logo.png" alt="ProcSpy Logo" className="w-6 h-6 object-contain brightness-0 invert" />
               </div>
-              <span className="font-bold text-gray-900 text-lg">ProcSpy</span>
+              <span className="font-bold text-gray-900 text-xl">ProcSpy</span>
             </a>
 
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-2">
               {NAV_LINKS.map(({ label, href }) => {
                 const isActive = activeSection === href;
                 return (
                   <a key={href} href={`#${href}`} onClick={(e) => handleNavClick(e, href)}
-                    className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 group
+                    className={`relative px-5 py-2.5 text-lg font-medium rounded-lg transition-all duration-200 group
                       ${isActive ? "text-indigo-700 font-semibold" : "text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"}`}
                   >
                     {label}
@@ -154,10 +154,10 @@ export default function Home() {
             </div>
 
             <div className="hidden md:flex items-center gap-3">
-              <Link href="/login" className="text-gray-700 text-sm font-medium hover:text-indigo-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-indigo-50">
+              <Link href="/login" className="text-gray-700 text-lg font-medium hover:text-indigo-700 transition-colors px-4 py-2 rounded-lg hover:bg-indigo-50">
                 Masuk
               </Link>
-              <Link href="/register" className="bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-all duration-150 shadow-md shadow-indigo-200">
+              <Link href="/register" className="bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white text-lg font-semibold px-6 py-2.5 rounded-lg transition-all duration-150 shadow-md shadow-indigo-200">
                 Daftar
               </Link>
             </div>
@@ -193,28 +193,28 @@ export default function Home() {
         </nav>
 
         {/* ── HERO ── */}
-        <section id="home" className="pt-28 pb-20 px-6 max-w-6xl mx-auto">
+        <section id="home" className="pt-40 pb-36 px-8 max-w-[85%] mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-12">
 
             {/* Left — staggered fade-up */}
             <div className="flex-1">
 
-              <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
+              <h1 className="text-6xl md:text-7xl font-extrabold text-gray-900 leading-tight mb-8">
                 <span className="block anim-up d2">Pengawasan Ujian</span>
                 <span className="block anim-up d3">Online Yang</span>
                 <span className="block text-indigo-600 anim-up d4">Terpercaya</span>
               </h1>
 
-              <p className="anim-up d5 text-gray-500 text-lg mb-10 leading-relaxed max-w-md">
+              <p className="anim-up d5 text-gray-500 text-xl mb-12 leading-relaxed max-w-lg">
                 Sistem monitoring ujian online untuk memastikan integritas dan keamanan ujian.
               </p>
 
-              <div className="anim-up d6 flex flex-wrap gap-4">
+              <div className="anim-up d6 flex flex-wrap gap-5">
                 <Link href="/login"
-                  className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-7 py-3.5 rounded-xl transition-all hover:scale-105 shadow-lg shadow-indigo-200 inline-block">
+                  className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-9 py-4 rounded-xl transition-all hover:scale-105 shadow-lg shadow-indigo-200 inline-block text-lg">
                   Mulai Sekarang
                 </Link>
-                <button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-7 py-3.5 rounded-xl transition-all hover:scale-105">
+                <button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-9 py-4 rounded-xl transition-all hover:scale-105 text-lg">
                   Pelajari Lebih Lanjut
                 </button>
               </div>
@@ -222,23 +222,23 @@ export default function Home() {
 
             {/* Right — slide from right */}
             <div className="anim-left d4 flex-1 flex justify-center relative">
-              <div className="relative w-72 md:w-80">
+              <div className="relative w-96 md:w-[420px]">
                 <div className="w-full aspect-[3/4] bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl overflow-hidden flex items-end justify-center shadow-xl">
-                  <div className="w-56 h-64 bg-gradient-to-t from-indigo-200 to-transparent rounded-t-full" />
+                  <div className="w-72 h-80 bg-gradient-to-t from-indigo-200 to-transparent rounded-t-full" />
                 </div>
-                <div className="anim-scale d7 absolute bottom-6 right-0 translate-x-8 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 min-w-max">
-                  <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <div className="anim-scale d7 absolute bottom-8 right-0 translate-x-8 bg-white rounded-2xl shadow-lg px-5 py-4 flex items-center gap-4 min-w-max">
+                  <div className="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-extrabold text-gray-900 leading-none">98</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Online Student</p>
+                    <p className="text-2xl font-extrabold text-gray-900 leading-none">98</p>
+                    <p className="text-sm text-gray-400 mt-0.5">Online Student</p>
                   </div>
                   <div className="flex -space-x-2 ml-1">
                     {["bg-indigo-400","bg-yellow-400","bg-pink-400","bg-green-400"].map((c, i) => (
-                      <div key={i} className={`w-7 h-7 rounded-full ${c} border-2 border-white`} />
+                      <div key={i} className={`w-9 h-9 rounded-full ${c} border-2 border-white`} />
                     ))}
                   </div>
                 </div>
@@ -248,16 +248,16 @@ export default function Home() {
         </section>
 
         {/* ── FITUR UNGGULAN ── */}
-        <section id="fitur" className="py-20 px-6 bg-gray-50" ref={fiturRef}>
-          <div className="max-w-6xl mx-auto">
+        <section id="fitur" className="py-36 px-8 bg-gray-50" ref={fiturRef}>
+          <div className="max-w-[85%] mx-auto">
             <div className={`text-center mb-14 reveal ${fiturInView ? "in-view" : ""}`}>
-              <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Fitur Unggulan</h2>
-              <p className="text-gray-500 max-w-md mx-auto">
+              <h2 className="text-5xl font-extrabold text-gray-900 mb-5">Fitur Unggulan</h2>
+              <p className="text-gray-500 text-lg max-w-md mx-auto">
                 Teknologi canggih untuk pengawasan ujian online yang komprehensif dan efektif
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 {
                   sd: "sd1",
@@ -281,12 +281,12 @@ export default function Home() {
                   desc: "Dapatkan laporan detail tentang aktivitas ujian dan analisis perilaku peserta.",
                 },
               ].map(({ sd, iconBg, icon, title, desc }) => (
-                <div key={title} className={`reveal ${sd} ${fiturInView ? "in-view" : ""} bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-all border border-gray-100 group`}>
-                  <div className={`w-12 h-12 ${iconBg} rounded-xl flex items-center justify-center mb-5 transition-colors`}>
+                <div key={title} className={`reveal ${sd} ${fiturInView ? "in-view" : ""} bg-white rounded-2xl px-10 py-12 shadow-sm hover:shadow-md transition-all border border-gray-100 group`}>
+                  <div className={`w-16 h-16 ${iconBg} rounded-xl flex items-center justify-center mb-6 transition-colors`}>
                     {icon}
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-2">{title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+                  <h3 className="font-bold text-gray-900 text-2xl mb-3">{title}</h3>
+                  <p className="text-gray-500 text-lg leading-relaxed">{desc}</p>
                 </div>
               ))}
             </div>
@@ -294,11 +294,11 @@ export default function Home() {
         </section>
 
         {/* ── CARA KERJA ── */}
-        <section id="cara-kerja" className="py-20 px-6" ref={caraRef}>
-          <div className="max-w-6xl mx-auto">
+        <section id="cara-kerja" className="py-36 px-8" ref={caraRef}>
+          <div className="max-w-[85%] mx-auto">
             <div className={`text-center mb-16 reveal ${caraInView ? "in-view" : ""}`}>
-              <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Cara Kerja</h2>
-              <p className="text-gray-500 max-w-sm mx-auto">
+              <h2 className="text-5xl font-extrabold text-gray-900 mb-5">Cara Kerja</h2>
+              <p className="text-gray-500 text-lg max-w-md mx-auto">
                 Proses sederhana untuk memulai pengawasan ujian online yang efektif
               </p>
             </div>
@@ -311,11 +311,11 @@ export default function Home() {
                 { step:"3", title:"Monitor & Analisis",  sd:"sd3" },
               ].map(({ step, title, sd }) => (
                 <div key={step} className={`reveal ${sd} ${caraInView ? "in-view" : ""} flex flex-col items-center text-center`}>
-                  <div className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center text-gray-900 font-extrabold text-xl mb-5 shadow-lg shadow-yellow-100 z-10">
+                  <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center text-gray-900 font-extrabold text-2xl mb-6 shadow-lg shadow-yellow-100 z-10">
                     {step}
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-2">{title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
+                  <h3 className="font-bold text-gray-900 text-2xl mb-3">{title}</h3>
+                  <p className="text-gray-500 text-lg leading-relaxed max-w-sm">
                     Proses sederhana untuk memulai pengawasan ujian online yang efektif
                   </p>
                 </div>
@@ -325,21 +325,21 @@ export default function Home() {
         </section>
 
         {/* ── CTA BANNER ── */}
-        <section className="py-20 px-6 bg-indigo-900" ref={ctaRef}>
-          <div className={`max-w-3xl mx-auto text-center reveal ${ctaInView ? "in-view" : ""}`}>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-5 leading-tight">
+        <section className="py-28 px-6 bg-indigo-900" ref={ctaRef}>
+          <div className={`max-w-4xl mx-auto text-center reveal ${ctaInView ? "in-view" : ""}`}>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-white mb-5 leading-tight">
               Siap Memulai{" "}
               <span className="text-yellow-400">Pengawasan Ujian Online?</span>
             </h2>
-            <p className="text-indigo-200 text-lg mb-10 leading-relaxed">
+            <p className="text-indigo-200 text-lg mb-12 leading-relaxed">
               Bergabunglah dengan ribuan institusi pendidikan yang telah mempercayai ProcSpy untuk ujian online mereka
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/login"
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3.5 rounded-xl transition-all hover:scale-105 inline-block">
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-10 py-4 rounded-xl transition-all hover:scale-105 inline-block text-lg">
                 Masuk ke Akun
               </Link>
-              <Link href="/register" className="border-2 border-white text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-white hover:text-indigo-900 transition-all hover:scale-105">
+              <Link href="/register" className="border-2 border-white text-white font-semibold px-10 py-4 rounded-xl hover:bg-white hover:text-indigo-900 transition-all hover:scale-105 text-lg">
                 Daftar Gratis
               </Link>
             </div>
@@ -347,8 +347,8 @@ export default function Home() {
         </section>
 
         {/* ── FOOTER ── */}
-        <footer id="kontak" className="py-14 px-6 bg-white border-t border-gray-100">
-          <div className="max-w-6xl mx-auto">
+        <footer id="kontak" className="py-14 px-8 bg-white border-t border-gray-100">
+          <div className="max-w-[85%] mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
               <div>
                 <div className="flex items-center gap-2 mb-4">
@@ -357,7 +357,7 @@ export default function Home() {
                   </div>
                   <span className="font-bold text-gray-900 text-lg">ProcSpy</span>
                 </div>
-                <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
+                <p className="text-gray-500 text-base leading-relaxed max-w-sm">
                   Solusi pengawasan ujian online terdepan dengan teknologi terkini untuk memastikan integritas ujian online
                 </p>
               </div>

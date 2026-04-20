@@ -29,7 +29,7 @@ export default function RegisterPage() {
                 password: formData.get('password')?.toString() || '',
             }
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://10.252.130.112:5050'}/api/register`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/register`, {
                 method: 'POST',
                 body: JSON.stringify(body),
                 headers: { "Content-Type": "application/json" },

@@ -61,7 +61,7 @@ const LogsWindow = ({ token, canDrag = false }: { token: string, canDrag?: boole
         try {
             const jwt = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://10.252.130.112:5050"}/api/logs-proctored-user/${token}?page=${nextPage}&paginationLimit=7`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/logs-proctored-user/${token}?page=${nextPage}&paginationLimit=7`,
                 {
                     headers: {
                         Authorization: `Bearer ${jwt}`,
@@ -138,7 +138,7 @@ const LogsWindow = ({ token, canDrag = false }: { token: string, canDrag?: boole
         try {
             const jwt = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://10.252.130.112:5050"}/api/logs-proctored-user/${token}?page=1&paginationLimit=${count}`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/logs-proctored-user/${token}?page=1&paginationLimit=${count}`,
                 {
                     headers: {
                         Authorization: `Bearer ${jwt}`,
