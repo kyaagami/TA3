@@ -9,7 +9,8 @@ export async function GET() {
     expires: new Date(0), 
     httpOnly: true,       
     secure: true,         
-    sameSite: 'lax'       
+    sameSite: 'none',
+    domain: '.procspy.my.id'       
   })
 
   return response

@@ -1,4 +1,5 @@
 'use client'
+import { useState, useEffect } from "react"
 import { useParams, usePathname, useRouter } from "next/navigation"
 import {
     CctvIcon, FlagIcon, HomeIcon, LogOutIcon, MonitorIcon,
@@ -47,19 +48,33 @@ function SideBarItem({ onClick, active, icon: Icon, label }: SideBarItemProps) {
 
 export default function SideBar() {
     const router = useRouter()
-    const { roomId } = useParams()
+    const { roomId: paramRoomId } = useParams()
+    const [roomId, setRoomId] = useState(paramRoomId)
     const pathname = usePathname()
     const { openModal } = useModal()
+
+    useEffect(() => {
+        if (paramRoomId) {
+            setRoomId(paramRoomId)
+        }
+    }, [paramRoomId])
 
     const handleRedirect = (path: string) => {
         openModal(
             <ConfirmModal
-                onConfirm={() => { router.push(path) }}
+                onConfirm={() => {
+                    setRoomId(null)
+                    router.push(path)
+                }}
                 onCancel={() => {}}
+                confirmText="Ya, Keluar"
+                cancelText="Batal"
             >
-                <TitleModal>Are you sure want to leave?</TitleModal>
+                <TitleModal>Yakin ingin keluar?</TitleModal>
                 <BodyModal>
-                    <p className="text-sm dark:text-slate-300">Are you sure you want to leave proctoring mode?</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Kamu akan meninggalkan mode proctoring. Sesi pengawasan akan terhenti.
+                    </p>
                 </BodyModal>
             </ConfirmModal>
         )
@@ -67,7 +82,7 @@ export default function SideBar() {
 
     const handleActiveToggle = (path: string) => {
         if (pathname !== path) {
-            if (pathname.includes("/dashboard/room/") && !path.includes("/dashboard/room/")) {
+            if (roomId && !path.includes("/dashboard/room")) {
                 handleRedirect(path)
             } else {
                 router.push(path)
@@ -104,6 +119,12 @@ export default function SideBar() {
 
                 {roomId ? (
                     <>
+                        <SideBarItem
+                            onClick={() => handleActiveToggle('/dashboard/room')}
+                            active={pathname === '/dashboard/room'}
+                            icon={CctvIcon}
+                            label="Ruangan Ujian"
+                        />
                         <SideBarItem
                             onClick={() => handleActiveToggle(`/dashboard/room/${roomId}`)}
                             active={pathname === `/dashboard/room/${roomId}`}

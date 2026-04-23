@@ -26,7 +26,7 @@ export const expressRouteAdapter = (
                 httpOnly: true,
                 secure: true,
                 sameSite: isProd ? "none" : "lax",
-                domain: isProd ? ".procspy.link" : undefined
+                domain: isProd ? ".procspy.my.id" : undefined
             })
         }
         res.status(httpResponse.statusCode).json(httpResponse.body)
