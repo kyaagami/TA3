@@ -237,7 +237,7 @@ export default function Page() {
                     >
                         Belum punya akun?{" "}
                         <a href="/register" className="text-indigo-500 hover:text-indigo-700 font-medium transition-colors">
-                            Daftar sekarang
+                            Hubungi kami
                         </a>
                     </p>
                 </form>

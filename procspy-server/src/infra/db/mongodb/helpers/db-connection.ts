@@ -67,7 +67,7 @@ class DbConnection {
             },
             {
                 "key": "PLATFORM_DOMAIN",
-                "value": "https://procspy.link"
+                "value": "https://procspy.my.id"
             },
             {
                 "key": "PLATFORM_NAME",

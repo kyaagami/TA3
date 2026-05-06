@@ -4,7 +4,7 @@ import Header from "./components/Header"
 
 export default function DashboardLayout({ children }) {
     return (
-        <section className="min-h-screen flex flex-col dark:bg-gradient-to-r dark:from-black dark:to-slate-900/70">
+        <section className="min-h-screen flex flex-col dark:bg-gradient-to-r dark:from-black dark:to-slate-900/70 isolate">
             {/* Header full width di atas */}
             <Header />
 

@@ -2,23 +2,112 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import session from "../../../../../../lib/session";
-import { ChartLineIcon, EllipsisVertical, Eye, Unplug } from "lucide-react";
-import { FraudLevel, SessionProps } from "../../../../room/[roomId]/users/components/UserSessionTable";
+import { ChartLineIcon, PlusIcon, Square } from "lucide-react";
+import { FraudLevel, SessionProps, SessionStatus } from "../../../../room/[roomId]/users/components/UserSessionTable";
 import { useRouter } from "next/navigation";
-import PopOver from "../../../../../../components/ui/PopOver";
-import SheetHeader from "../../../../../../components/ui/sheet/SheetHeader";
-import { useSideSheet } from "../../../../../../context/SideSheetProvider";
 import { useModal } from "../../../../../../context/ModalProvider";
 import AlertModal from "../../../../../../components/ui/AlertModal";
 import TitleModal from "../../../../../../components/ui/modal/TitleModal";
 import BodyModal from "../../../../../../components/ui/modal/BodyModal";
+import ConfirmModal from "../../../../../../components/ui/ConfirmModal";
 
+// ── Fraud level badge (transparan) ──
+const fraudLevelBadge = {
+    [FraudLevel.CRITICAL]: "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30",
+    [FraudLevel.HIGH]:     "bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30",
+    [FraudLevel.MEDIUM]:   "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30",
+    [FraudLevel.LOW]:      "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/30",
+}
 
+// ── Status badge (transparan) ──
+const statusBadge = (status: string) => {
+    switch (status) {
+        case "active":
+        case "ongoing":    return "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/30"
+        case "completed":  return "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30"
+        case "paused":     return "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30"
+        case "canceled":   return "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30"
+        case "scheduled":  return "bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10"
+        default:           return "bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10"
+    }
+}
 
-const SessionTable = () => {
+const statusLabel = (status: string) => {
+    switch (status) {
+        case "active":     return "Active"
+        case "ongoing":    return "Ongoing"
+        case "completed":  return "Completed"
+        case "paused":     return "Paused"
+        case "canceled":   return "Canceled"
+        case "scheduled":  return "Scheduled"
+        default:           return status
+    }
+}
+
+// ── Modal Add Session ──
+const AddSessionModal = ({
+    rooms,
+    onSubmit,
+    onClose,
+}: {
+    rooms: any[]
+    onSubmit: (roomId: string) => void
+    onClose: () => void
+}) => {
+    const roomRef = useRef<HTMLSelectElement>(null)
+
+    return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" onClick={onClose}>
+            <style>{`
+                @keyframes modalIn {
+                    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+                    to   { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes backdropIn {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
+            `}</style>
+            <div className="absolute inset-0 bg-black/40" style={{ animation: 'backdropIn 0.2s ease' }} />
+            <div
+                style={{ animation: 'modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                className="relative z-10 bg-white dark:bg-[#0f0f13] rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 p-10 w-full max-w-lg mx-4 flex flex-col gap-6"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="text-center">
+                    <h2 className="font-bold text-xl text-slate-800 dark:text-white">Tambah Sesi Baru</h2>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+                        Pilih ruangan untuk sesi ujian. Klik di luar untuk batal.
+                    </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Ruangan</label>
+                    <select ref={roomRef}
+                        className="px-4 py-3 text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-white focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all"
+                    >
+                        <option value="">Pilih ruangan</option>
+                        {rooms?.map((room) => (
+                            <option key={room.id} value={room.roomId} className="dark:text-slate-700">
+                                {room.roomId} {room.title ? `- ${room.title}` : ""}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <button
+                    onClick={() => onSubmit(roomRef.current?.value || "")}
+                    className="w-full px-5 py-3 rounded-xl text-sm font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-lg shadow-[#4F46E5]/25 transition-all duration-200 active:scale-95"
+                >
+                    Tambah Sesi
+                </button>
+            </div>
+        </div>
+    )
+}
+
+const SessionTable = ({ userName }: { userName: string }) => {
     const pathname = usePathname()
-    const usedPathaname = pathname.split("/")
-    usedPathaname.pop()
+    const usedPathname = pathname.split("/")
+    usedPathname.pop()
 
     const { userId } = useParams()
     const [sessions, setSessions] = useState<SessionProps[]>([]);
@@ -26,18 +115,15 @@ const SessionTable = () => {
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-
     const [threshold, setThreshold] = useState(100)
+    const [rooms, setRooms] = useState([])
+    const [showAddSession, setShowAddSession] = useState(false)
+
     const { openModal, closeModal } = useModal()
-
-    const { openSheet, closeSheet } = useSideSheet()
-
-    const [rooms, setRooms] = useState(null)
-
     const router = useRouter()
+
     useEffect(() => {
         if (!userId) return;
-
         fetchSessions(1);
         fetchRooms()
         fetchGlobalSetting()
@@ -47,9 +133,7 @@ const SessionTable = () => {
         try {
             const token = await session();
             const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/sessions/${userId}?page=${nextPage}&paginationLimit=20`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
             if (res.ok) {
@@ -62,15 +146,13 @@ const SessionTable = () => {
                 setPage(nextPage);
             }
         } catch (err) {
-            console.error("Failed to fetch session history", err);
+            console.error("Failed to fetch sessions", err);
         }
     };
-
 
     const handleScroll = () => {
         const el = scrollRef.current;
         if (!el || loading || !hasMore) return;
-
         if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
             fetchSessions(page + 1);
         }
@@ -80,224 +162,176 @@ const SessionTable = () => {
         try {
             const token = await session();
             const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-settings?page=1&paginationLimit=1`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
-
             if (response.ok) {
                 const { data } = await response.json()
                 setThreshold(parseInt(data[0].value))
             }
-        } catch (error) {
-
-        }
+        } catch (error) { }
     }
-
-
-    const calcFraudLevel = (totalSeverity: number) => {
-        const percentOfThreshold = (totalSeverity / threshold) * 100;
-
-        return percentOfThreshold >= 90 ? FraudLevel.CRITICAL :
-            percentOfThreshold >= 65 ? FraudLevel.HIGH :
-                percentOfThreshold >= 25 ? FraudLevel.MEDIUM :
-                    FraudLevel.LOW;
-    }
-
-    const handleSessionState = async (token: string, state: string) => {
-        try {
-
-            const jwt = await session()
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/session/update-status-proctor/${token}/${state}`, {
-                headers: {
-                    Authorization: `Bearer ${jwt}`,
-                },
-            });
-
-            if (res.ok) {
-                setSessions([])
-                fetchSessions(1)
-            }
-        } catch (error) {
-
-        }
-    }
-
-    const roomRef = useRef<HTMLSelectElement>(null)
 
     const fetchRooms = async () => {
         try {
             const token = await session();
             const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/rooms`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
-
             if (res.ok) {
                 const { data } = await res.json();
                 setRooms(data);
             }
-        } catch (err) {
-            console.error("Failed to fetch rooms", err);
-        }
+        } catch (err) { }
     }
 
-    const handleAddSession = async () => {
+    const calcFraudLevel = (totalSeverity: number) => {
+        const p = (totalSeverity / threshold) * 100;
+        return p >= 90 ? FraudLevel.CRITICAL : p >= 65 ? FraudLevel.HIGH : p >= 25 ? FraudLevel.MEDIUM : FraudLevel.LOW;
+    }
 
-        openSheet(
-            <div className="w-96 flex flex-col gap-4 h-full">
-                <SheetHeader>Add New Session</SheetHeader>
-                <p className="text-sm dark:text-slate-500">Add New Session for user id {userId}</p>
-
-                <div className="flex flex-col gap-2 mt-20">
-                    <label htmlFor="room" className="text-sm font-medium">RoomId</label>
-                    <select
-                        id="room"
-                        ref={roomRef}
-                        className="p-2 text-sm bg-white/5 border dark:border-white/15 rounded-md"
-                    >
-                        <option value="">Select a room</option>
-                        {rooms.map((room) => (
-                            <option key={room.id} value={room.roomId} className="dark:text-slate-700">
-                                {room.roomId}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="mt-auto flex flex-col gap-1 p-1">
-                    <div className="bg-slate-100 rounded-md text-black/90 p-1 text-center text-sm font-medium py-2 cursor-pointer" onClick={() => addSession(userId as string)}>
-                        Save Change
-                    </div>
-                </div>
-            </div>
+    const handleEndSession = (token: string) => {
+        openModal(
+            <ConfirmModal onConfirm={() => endSession(token)} confirmText="Ya, Akhiri" cancelText="Batal">
+                <TitleModal>Akhiri Sesi?</TitleModal>
+                <BodyModal><p className="text-sm text-slate-500 dark:text-slate-400">Sesi ini akan ditandai sebagai selesai.</p></BodyModal>
+            </ConfirmModal>
         )
     }
 
-    const addSession = async (id: string) => {
-        closeSheet()
-        const roomId = roomRef.current.value
+    const endSession = async (token: string) => {
+        try {
+            const jwt = await session()
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/session/update-status-proctor/${token}/completed`, {
+                headers: { Authorization: `Bearer ${jwt}` },
+            });
+            if (res.ok) { setSessions([]); fetchSessions(1) }
+        } catch (error) { }
+    }
+
+    const addSession = async (roomId: string) => {
+        setShowAddSession(false)
         try {
             const token = await session();
             const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/session/`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    proctoredUserId: id,
-                    roomId,
-                }),
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ proctoredUserId: userId, roomId }),
             });
             const data = await res.json()
             if (res.ok) {
-                setSessions([])
-                fetchSessions(1)
-                openModal(
-                    <AlertModal>
-                        <TitleModal>Success</TitleModal>
-                        <BodyModal><p className="text-sm dark:text-slate-300">Session Addd!</p>
-                        </BodyModal>
-                    </AlertModal>
-                )
-                setTimeout(() => {
-                    closeModal()
-                }, 1000)
+                setSessions([]); fetchSessions(1)
+                openModal(<AlertModal><TitleModal>Success</TitleModal><BodyModal><p className="text-sm dark:text-slate-300">Sesi berhasil ditambahkan!</p></BodyModal></AlertModal>)
+                setTimeout(() => closeModal(), 1000)
             } else {
-                openModal(
-                    <AlertModal>
-                        <TitleModal>Failed</TitleModal>
-                        <BodyModal><p className="text-sm dark:text-slate-300">Data not created {data.error}</p>
-                        </BodyModal>
-                    </AlertModal>
-                )
-                setTimeout(() => {
-                    closeModal()
-                }, 2000)
+                openModal(<AlertModal><TitleModal>Failed</TitleModal><BodyModal><p className="text-sm dark:text-slate-300">Data not created {data.error}</p></BodyModal></AlertModal>)
+                setTimeout(() => closeModal(), 2000)
             }
         } catch (err) {
-            openModal(
-                <AlertModal>
-                    <TitleModal>Sorry</TitleModal>
-                    <BodyModal><p className="text-sm dark:text-slate-300">Something went wrong</p>
-                    </BodyModal>
-                </AlertModal>
-            )
-            setTimeout(() => {
-                closeModal()
-            }, 2000)
+            openModal(<AlertModal><TitleModal>Sorry</TitleModal><BodyModal><p className="text-sm dark:text-slate-300">Something went wrong</p></BodyModal></AlertModal>)
+            setTimeout(() => closeModal(), 2000)
         }
-
     }
 
-
     return (
-        <div className="">
-            <div className="overflow-x-auto border-b dark:border-white/15">
-                <div className="flex justify-between mx-8 my-4">
-                    <div>
+        <div className="p-8 bg-[#F7F8FA] dark:bg-transparent min-h-full">
 
-                    </div>
-                    <button
-                        onClick={() => handleAddSession()}
-                        className="bg-blue-500 text-white p-2 px-4 text-sm rounded-md min-w-32 hover:bg-blue-600"
-                    >
-                        Add Session
-                    </button>
-                </div>
-                <div className="relative max-h-[76vh] overflow-y-auto" onScroll={handleScroll} ref={scrollRef}>
-                    <table className="min-w-full table-fixed">
-                        <thead className="sticky top-0 backdrop-blur-[2px] z-10">
-                            <tr className="">
-                                <th className="pl-8 pr-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Session Token</th>
-                                <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Start Time</th>
-                                <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">End Time</th>
-                                <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Room Id</th>
-                                <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Session Status</th>
-                                <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Fraud Status</th>
-                                <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Analytics</th>
-                                <th className="pr-8 pl-4 text-left font-normal dark:text-slate-100/75 text-sm">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sessions.map((session) => (
-                                <tr key={session.token} className="border-t dark:border-white/10 dark:hover:bg-gray-600/30 hover:bg-black/5">
+            {showAddSession && (
+                <AddSessionModal
+                    rooms={rooms}
+                    onClose={() => setShowAddSession(false)}
+                    onSubmit={addSession}
+                />
+            )}
 
-                                    <td className="pl-8 pr-4 py-4 text-sm font-semibold">{session.token}</td>
-                                    <td className="px-4 py-4 text-sm">{session.startTime || "-"}</td>
-                                    <td className="px-4 py-4 text-sm">{session.endTime || "-"}</td>
-                                    <td className="px-4 py-4 text-sm font-semibold">{session.roomId || "-"}</td>
-                                    <td className="px-4 py-4 text-xs capitalize">
-                                        <div className="bg-red-500 text-white w-min rounded p-1 px-2">{session.status}</div>
-                                    </td>
-                                    <td className="px-4 py-4 text-xs capitalize">
-                                        <div className="bg-red-500 text-white w-min rounded p-1 px-2">{session.session_result && calcFraudLevel(session.session_result.totalSeverity) || "LOW"}</div>
-                                    </td>
-                                    <td className="pr-8 pl-4 py-4 text-xs capitalize gap-4">
-                                        <div onClick={() => router.push(usedPathaname.join("/") + "/analytics/" + session.token)} className="bg-blue-500 text-white w-max rounded p-1 px-2 cursor-pointer flex gap-1 items-center ">
-                                            <ChartLineIcon className="w-4" /> Session Result</div>
-                                    </td>
-                                    <td className="pr-8 pl-4 py-4 text-xs capitalize flex justify-start items-center gap-4">
-                                        <PopOver icon={<EllipsisVertical className="max-w-4 aspect-square" />}>
-                                            <div className="flex flex-col gap-1">
-                                                <div onClick={() => handleSessionState(session.token, "canceled")} className="dark:hover:bg-gray-700 hover:bg-slate-100 cursor-pointer rounded text-sm p-1 px-2">
-                                                    Cancel
-                                                </div>
-                                                <div onClick={() => handleSessionState(session.token, "completed")} className="dark:hover:bg-gray-700 hover:bg-slate-100 cursor-pointer rounded text-sm p-1 px-2">
-                                                    End (Complete)
-                                                </div>
-                                            </div>
-                                        </PopOver>
-                                    </td>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+                    <h1 className="font-bold text-2xl text-slate-800 dark:text-white">Riwayat Sesi / <span>{userName || "..."}</span> / Session</h1>
+                <button
+                    onClick={() => setShowAddSession(true)}
+                    className="flex items-center gap-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#4F46E5]/25 active:scale-95"
+                >
+                    <PlusIcon size={16} />
+                    Add Session
+                </button>
+            </div>
 
+            {/* Table */}
+            <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <div className="max-h-[75vh] overflow-y-auto" onScroll={handleScroll} ref={scrollRef}>
+                        <table className="min-w-full">
+                            <thead className="sticky top-0 bg-white dark:bg-[#0f0f13] border-b border-slate-100 dark:border-white/10 z-10">
+                                <tr>
+                                    {["Session Token", "Room ID", "Start Time", "End Time", "Status", "Fraud Status", "Analytics", "Action"].map(h => (
+                                        <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">
+                                            {h}
+                                        </th>
+                                    ))}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {sessions.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8} className="text-center py-12 text-slate-400 text-sm">Tidak ada sesi</td>
+                                    </tr>
+                                ) : (
+                                    sessions.map((s) => {
+                                        const fraudLevel = s.session_result ? calcFraudLevel(s.session_result.totalSeverity) : FraudLevel.LOW
+                                        return (
+                                            <tr key={s.token} className="border-b border-slate-50 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                                <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-white font-mono">
+                                                    {s.token}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm font-medium text-slate-600 dark:text-slate-300">
+                                                    {s.roomId || "-"}
+                                                </td>
+                                                <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                                    {s.startTime || "-"}
+                                                </td>
+                                                <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                                    {s.endTime || "-"}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`${statusBadge(s.status as unknown as string)} text-xs font-medium px-3 py-1 rounded-lg whitespace-nowrap`}>
+                                                        {statusLabel(s.status as unknown as string)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`${fraudLevelBadge[fraudLevel]} text-xs font-medium px-3 py-1 rounded-lg whitespace-nowrap`}>
+                                                        {fraudLevel}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <button
+                                                        onClick={() => router.push(usedPathname.join("/") + "/analytics/" + s.token)}
+                                                        className="flex items-center gap-1.5 bg-[#4F46E5]/10 hover:bg-[#4F46E5] text-[#4F46E5] hover:text-white text-xs font-medium px-3 py-1 rounded-lg transition-all duration-200 whitespace-nowrap"
+                                                    >
+                                                        <ChartLineIcon size={12} />
+                                                        Hasil
+                                                    </button>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <button
+                                                        onClick={() => handleEndSession(s.token)}
+                                                        className="flex items-center gap-1.5 bg-red-50 dark:bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white text-xs font-medium px-3 py-1 rounded-lg border border-red-200 dark:border-red-500/30 hover:border-red-500 transition-all duration-200 whitespace-nowrap"
+                                                    >
+                                                        <Square size={10} fill="currentColor" />
+                                                        End
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+                {sessions.length > 0 && (
+                    <div className="px-6 py-3 border-t border-slate-50 dark:border-white/5 text-xs text-slate-400">
+                        Showing {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+                    </div>
+                )}
             </div>
         </div>
     );

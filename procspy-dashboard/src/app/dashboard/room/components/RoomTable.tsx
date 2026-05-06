@@ -8,14 +8,99 @@ import AlertModal from "../../../../components/ui/AlertModal";
 import TitleModal from "../../../../components/ui/modal/TitleModal";
 import BodyModal from "../../../../components/ui/modal/BodyModal";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
-import { useSideSheet } from "../../../../context/SideSheetProvider";
-import SheetHeader from "../../../../components/ui/sheet/SheetHeader";
 
 export type Room = {
     id: string
     roomId: string
     title?: string
 };
+
+// Modal form buat/edit ruangan
+const RoomFormModal = ({
+    room,
+    onSubmit,
+    onClose,
+}: {
+    room?: Room | null
+    onSubmit: (roomId: string, title: string) => void
+    onClose: () => void
+}) => {
+    const roomIdRef = useRef<HTMLInputElement>(null)
+    const titleRef = useRef<HTMLInputElement>(null)
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            onClick={onClose}
+        >
+            <style>{`
+                @keyframes modalIn {
+                    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+                    to   { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes backdropIn {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
+            `}</style>
+
+            {/* Backdrop gelap */}
+            <div
+                className="absolute inset-0 bg-black/40"
+                style={{ animation: 'backdropIn 0.2s ease' }}
+            />
+
+            {/* Card */}
+            <div
+                style={{ animation: 'modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                className="relative z-10 bg-white dark:bg-[#0f0f13] rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 p-10 w-full max-w-lg mx-4 flex flex-col gap-6"
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="text-center">
+                    <h2 className="font-bold text-xl text-slate-800 dark:text-white">
+                        {room ? "Edit Ruangan" : "Buat Ruangan Baru"}
+                    </h2>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+                        Isi detail ruangan ujian di bawah ini. Klik di luar untuk batal.
+                    </p>
+                </div>
+
+                {/* Form fields */}
+                <div className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Nama Kelas</label>
+                        <input
+                            ref={roomIdRef}
+                            type="text"
+                            placeholder="Contoh: XII-A"
+                            defaultValue={room?.roomId || ""}
+                            className="px-4 py-3 text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Mata Pelajaran</label>
+                        <input
+                            ref={titleRef}
+                            type="text"
+                            placeholder="Contoh: Matematika"
+                            defaultValue={room?.title || ""}
+                            className="px-4 py-3 text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all"
+                        />
+                    </div>
+                </div>
+
+                {/* Save button */}
+                <button
+                    onClick={() => onSubmit(roomIdRef.current?.value || "", titleRef.current?.value || "")}
+                    className="w-full px-5 py-3 rounded-xl text-sm font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-lg shadow-[#4F46E5]/25 transition-all duration-200 active:scale-95"
+                >
+                    Simpan
+                </button>
+            </div>
+        </div>
+    )
+}
 
 const RoomTable = () => {
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -26,7 +111,7 @@ const RoomTable = () => {
     const [search, setSearch] = useState("")
     const pathname = usePathname()
     const router = useRouter()
-    const { openSheet, closeSheet } = useSideSheet()
+    const { openModal, closeModal } = useModal()
 
     useEffect(() => {
         fetchRooms(1);
@@ -61,12 +146,11 @@ const RoomTable = () => {
         }
     };
 
-    const { openModal, closeModal } = useModal()
-
     const handleDeleteRoom = async (id: string) => {
         openModal(
-            <ConfirmModal onConfirm={() => deleteRoom(id)}>
-                <TitleModal>Are you sure want to delete this?</TitleModal>
+            <ConfirmModal onConfirm={() => deleteRoom(id)} confirmText="Ya, Hapus" cancelText="Batal">
+                <TitleModal>Hapus Ruangan?</TitleModal>
+                <BodyModal><p className="text-sm text-slate-500 dark:text-slate-400">Ruangan ini akan dihapus permanen.</p></BodyModal>
             </ConfirmModal>
         )
     }
@@ -92,37 +176,21 @@ const RoomTable = () => {
         }
     }
 
-    const roomIdRef = useRef<HTMLInputElement>(null)
-    const titleRoomRef = useRef<HTMLInputElement>(null)
+    const [showRoomForm, setShowRoomForm] = useState(false)
+    const [editingRoom, setEditingRoom] = useState<Room | null>(null)
 
-    const handleSheet = async ({ room, onClick }: { room?: Room | null, onClick?: MouseEventHandler }) => {
-        openSheet(
-            <div className="w-96 flex flex-col gap-4 h-full">
-                <SheetHeader>{room ? "Edit Room" : "Buat Ruangan Baru"}</SheetHeader>
-                <p className="text-sm dark:text-slate-500">Isi detail ruangan ujian, klik Save saat selesai.</p>
-                <div className="flex flex-col gap-2 mt-20">
-                    <label htmlFor="roomId" className="text-sm dark:text-slate-100 font-medium">Nama Kelas</label>
-                    <input ref={roomIdRef} type="text" id="roomId" className="p-2 text-sm px-2 bg-white/5 border dark:border-white/15 rounded-md" defaultValue={room ? room.roomId : ""} />
-                </div>
-                <div className="flex flex-col gap-2">
-                    <label htmlFor="titleRoom" className="text-sm dark:text-slate-100 font-medium">Mata Pelajaran</label>
-                    <input ref={titleRoomRef} type="text" id="titleRoom" className="p-2 text-sm px-2 bg-white/5 border dark:border-white/15 rounded-md" defaultValue={room ? room.title : ""} />
-                </div>
-                <div className="mt-auto flex flex-col gap-1 p-1">
-                    <div className="bg-[#4F46E5] hover:bg-[#4338CA] rounded-xl text-white p-1 text-center text-sm font-medium py-2.5 cursor-pointer transition-colors" onClick={onClick}>
-                        Save Change
-                    </div>
-                </div>
-            </div>
-        )
+    const handleAddRoom = () => {
+        setEditingRoom(null)
+        setShowRoomForm(true)
     }
 
-    const handleAddRoom = async () => {
-        handleSheet({ room: null, onClick: () => addRoom({ roomId: roomIdRef.current.value, title: titleRoomRef.current.value }) })
+    const handleEditRoom = (room: Room) => {
+        setEditingRoom(room)
+        setShowRoomForm(true)
     }
 
     const addRoom = async ({ title, roomId }: { title?: string, roomId: string }) => {
-        closeSheet()
+        setShowRoomForm(false)
         try {
             const jwt = await session()
             const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/room`,
@@ -144,7 +212,28 @@ const RoomTable = () => {
         }
     }
 
-    // Filter search
+    const editRoom = async ({ id, roomId, title }: { id: string, roomId: string, title?: string }) => {
+        setShowRoomForm(false)
+        try {
+            const jwt = await session()
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/room`,
+                { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` }, body: JSON.stringify({ id, roomId, title }) }
+            )
+            if (response.ok) {
+                openModal(<AlertModal><TitleModal>Success</TitleModal><BodyModal><p className="text-sm text-slate-300">Data saved</p></BodyModal></AlertModal>)
+                setRooms([])
+                fetchRooms(1)
+                setTimeout(() => closeModal(), 2000)
+            } else {
+                openModal(<AlertModal><TitleModal>Failed</TitleModal><BodyModal><p className="text-sm dark:text-slate-300">Data not saved</p></BodyModal></AlertModal>)
+                setTimeout(() => closeModal(), 2000)
+            }
+        } catch (error) {
+            openModal(<AlertModal><TitleModal>Sorry</TitleModal><BodyModal><p className="text-sm dark:text-slate-300">Something went wrong</p></BodyModal></AlertModal>)
+            setTimeout(() => closeModal(), 2000)
+        }
+    }
+
     const filtered = rooms.filter(r =>
         r.roomId.toLowerCase().includes(search.toLowerCase()) ||
         (r.title || "").toLowerCase().includes(search.toLowerCase())
@@ -153,11 +242,23 @@ const RoomTable = () => {
     return (
         <div className="p-8 bg-[#F7F8FA] dark:bg-transparent min-h-full">
 
+            {/* Room Form Modal */}
+            {showRoomForm && (
+                <RoomFormModal
+                    room={editingRoom}
+                    onClose={() => setShowRoomForm(false)}
+                    onSubmit={(roomId, title) =>
+                        editingRoom
+                            ? editRoom({ id: editingRoom.id, roomId, title })
+                            : addRoom({ roomId, title })
+                    }
+                />
+            )}
+
             {/* Header bar */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="font-bold text-2xl text-slate-800 dark:text-white">Ruangan Ujian</h1>
                 <div className="flex items-center gap-3">
-                    {/* Search */}
                     <div className="flex items-center gap-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 w-64">
                         <Search size={16} className="text-slate-400 flex-shrink-0" />
                         <input
@@ -168,7 +269,6 @@ const RoomTable = () => {
                             className="bg-transparent text-sm text-slate-700 dark:text-white placeholder:text-slate-400 focus:outline-none w-full"
                         />
                     </div>
-                    {/* Add button */}
                     <button
                         onClick={handleAddRoom}
                         className="flex items-center gap-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#4F46E5]/25 active:scale-95"
@@ -203,22 +303,15 @@ const RoomTable = () => {
                                 ) : (
                                     filtered.map((room) => (
                                         <tr key={room.id} className="border-b border-slate-50 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                            {/* Nama Kelas = roomId */}
                                             <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-white">{room.roomId}</span>
-                                                </div>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{room.roomId}</span>
                                             </td>
-                                            {/* Mata Pelajaran = title */}
                                             <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                                                 {room.title || "-"}
                                             </td>
-                                            {/* Student — placeholder, tidak ada data jumlah siswa dari API */}
                                             <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                                                 -
                                             </td>
-                                            {/* Action: Join, Edit, Delete */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <button
@@ -229,7 +322,7 @@ const RoomTable = () => {
                                                         Join
                                                     </button>
                                                     <button
-                                                        onClick={() => handleSheet({ room, onClick: () => addRoom({ roomId: roomIdRef.current.value, title: titleRoomRef.current.value }) })}
+                                                        onClick={() => handleEditRoom(room)}
                                                         className="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:border-[#4F46E5] hover:text-[#4F46E5] text-slate-400 dark:text-slate-500 transition-all duration-200"
                                                     >
                                                         <Pencil size={14} />
@@ -250,7 +343,6 @@ const RoomTable = () => {
                     </div>
                 </div>
 
-                {/* Footer */}
                 {filtered.length > 0 && (
                     <div className="px-6 py-3 border-t border-slate-50 dark:border-white/5 text-xs text-slate-400">
                         Showing {filtered.length} room{filtered.length !== 1 ? 's' : ''}

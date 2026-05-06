@@ -158,7 +158,7 @@ export default function Home() {
                 Masuk
               </Link>
               <Link href="/register" className="bg-indigo-700 hover:bg-indigo-800 active:scale-95 text-white text-lg font-semibold px-6 py-2.5 rounded-lg transition-all duration-150 shadow-md shadow-indigo-200">
-                Daftar
+                Hubungi Kami
               </Link>
             </div>
 
@@ -340,7 +340,7 @@ export default function Home() {
                 Masuk ke Akun
               </Link>
               <Link href="/register" className="border-2 border-white text-white font-semibold px-10 py-4 rounded-xl hover:bg-white hover:text-indigo-900 transition-all hover:scale-105 text-lg">
-                Daftar Gratis
+                Hubungi Kami
               </Link>
             </div>
           </div>

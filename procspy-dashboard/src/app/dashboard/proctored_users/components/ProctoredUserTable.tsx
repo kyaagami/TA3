@@ -1,5 +1,5 @@
 "use client"
-import { MouseEventHandler, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { HistoryIcon, PlusIcon, Search, Pencil, Trash2 } from "lucide-react";
 import session from "../../../../lib/session";
@@ -8,8 +8,6 @@ import ConfirmModal from "../../../../components/ui/ConfirmModal";
 import TitleModal from "../../../../components/ui/modal/TitleModal";
 import AlertModal from "../../../../components/ui/AlertModal";
 import BodyModal from "../../../../components/ui/modal/BodyModal";
-import { useSideSheet } from "../../../../context/SideSheetProvider";
-import SheetHeader from "../../../../components/ui/sheet/SheetHeader";
 
 export type ProctoredUser = {
     id: string
@@ -18,6 +16,141 @@ export type ProctoredUser = {
     identifier: string
 };
 
+// ── Modal Form User ──
+const UserFormModal = ({
+    user,
+    onSubmit,
+    onClose,
+}: {
+    user?: ProctoredUser | null
+    onSubmit: (identifier: string, name: string, email: string) => void
+    onClose: () => void
+}) => {
+    const identifierRef = useRef<HTMLInputElement>(null)
+    const nameRef = useRef<HTMLInputElement>(null)
+    const emailRef = useRef<HTMLInputElement>(null)
+
+    return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" onClick={onClose}>
+            <style>{`
+                @keyframes modalIn {
+                    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+                    to   { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes backdropIn {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
+            `}</style>
+            <div className="absolute inset-0 bg-black/40" style={{ animation: 'backdropIn 0.2s ease' }} />
+            <div
+                style={{ animation: 'modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                className="relative z-10 bg-white dark:bg-[#0f0f13] rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 p-10 w-full max-w-lg mx-4 flex flex-col gap-6"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="text-center">
+                    <h2 className="font-bold text-xl text-slate-800 dark:text-white">
+                        {user ? "Edit User" : "Tambah User Baru"}
+                    </h2>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+                        Isi data user di bawah ini. Klik di luar untuk batal.
+                    </p>
+                </div>
+
+                <div className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">NRP</label>
+                        <input ref={identifierRef} type="text" placeholder="Masukan NRP" defaultValue={user?.identifier || ""}
+                            className="px-4 py-3 text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Nama</label>
+                        <input ref={nameRef} type="text" placeholder="Masukan nama lengkap" defaultValue={user?.name || ""}
+                            className="px-4 py-3 text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
+                        <input ref={emailRef} type="email" placeholder="Masukan email" defaultValue={user?.email || ""}
+                            className="px-4 py-3 text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all" />
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => onSubmit(identifierRef.current?.value || "", nameRef.current?.value || "", emailRef.current?.value || "")}
+                    className="w-full px-5 py-3 rounded-xl text-sm font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-lg shadow-[#4F46E5]/25 transition-all duration-200 active:scale-95"
+                >
+                    Simpan
+                </button>
+            </div>
+        </div>
+    )
+}
+
+// ── Modal Generate Session ──
+const GenerateSessionModal = ({
+    userId,
+    rooms,
+    onSubmit,
+    onClose,
+}: {
+    userId: string
+    rooms: any[]
+    onSubmit: (roomId: string) => void
+    onClose: () => void
+}) => {
+    const roomRef = useRef<HTMLSelectElement>(null)
+
+    return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center" onClick={onClose}>
+            <style>{`
+                @keyframes modalIn {
+                    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+                    to   { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes backdropIn {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
+            `}</style>
+            <div className="absolute inset-0 bg-black/40" style={{ animation: 'backdropIn 0.2s ease' }} />
+            <div
+                style={{ animation: 'modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                className="relative z-10 bg-white dark:bg-[#0f0f13] rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 p-10 w-full max-w-lg mx-4 flex flex-col gap-6"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="text-center">
+                    <h2 className="font-bold text-xl text-slate-800 dark:text-white">Generate Session</h2>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+                        Pilih ruangan untuk sesi ujian. Klik di luar untuk batal.
+                    </p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Ruangan</label>
+                    <select ref={roomRef}
+                        className="px-4 py-3 text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-white focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 transition-all"
+                    >
+                        <option value="">Pilih ruangan</option>
+                        {rooms?.map((room) => (
+                            <option key={room.id} value={room.roomId} className="dark:text-slate-700">
+                                {room.roomId} {room.title ? `- ${room.title}` : ""}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <button
+                    onClick={() => onSubmit(roomRef.current?.value || "")}
+                    className="w-full px-5 py-3 rounded-xl text-sm font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-lg shadow-[#4F46E5]/25 transition-all duration-200 active:scale-95"
+                >
+                    Generate
+                </button>
+            </div>
+        </div>
+    )
+}
+
+// ── Main Component ──
 const ProctoredUserTable = () => {
     const [proctoredUsers, setProctoredUsers] = useState<ProctoredUser[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -26,8 +159,15 @@ const ProctoredUserTable = () => {
     const [hasMore, setHasMore] = useState(true);
     const [rooms, setRooms] = useState(null)
     const [search, setSearch] = useState("")
+
+    const [showUserForm, setShowUserForm] = useState(false)
+    const [editingUser, setEditingUser] = useState<ProctoredUser | null>(null)
+    const [showGenerateForm, setShowGenerateForm] = useState(false)
+    const [generatingUserId, setGeneratingUserId] = useState<string | null>(null)
+
     const pathname = usePathname()
     const router = useRouter()
+    const { openModal, closeModal } = useModal()
 
     useEffect(() => {
         fetchProctoredUsers(1);
@@ -78,12 +218,11 @@ const ProctoredUserTable = () => {
         }
     };
 
-    const { openModal, closeModal } = useModal()
-
     const handleDeleteProctoredUser = async (id: string) => {
         openModal(
-            <ConfirmModal onConfirm={() => deleteProctoredUser(id)}>
-                <TitleModal>Are you sure want to delete this?</TitleModal>
+            <ConfirmModal onConfirm={() => deleteProctoredUser(id)} confirmText="Ya, Hapus" cancelText="Batal">
+                <TitleModal>Hapus User?</TitleModal>
+                <BodyModal><p className="text-sm text-slate-500 dark:text-slate-400">User ini akan dihapus permanen.</p></BodyModal>
             </ConfirmModal>
         )
     }
@@ -109,47 +248,8 @@ const ProctoredUserTable = () => {
         }
     }
 
-    const { openSheet, closeSheet } = useSideSheet()
-    const identifierRef = useRef<HTMLInputElement>(null)
-    const nameRef = useRef<HTMLInputElement>(null)
-    const emailRef = useRef<HTMLInputElement>(null)
-
-    const handleSheet = async ({ proctoredUser, onClick }: { proctoredUser?: ProctoredUser | null, onClick?: MouseEventHandler }) => {
-        openSheet(
-            <div className="w-96 flex flex-col gap-4 h-full">
-                <SheetHeader>Edit Proctored User</SheetHeader>
-                <p className="text-sm dark:text-slate-500">Make change for Proctored User, click Save when done.</p>
-                <div className="flex flex-col gap-2 mt-20">
-                    <label htmlFor="identifier" className="text-sm dark:text-slate-100 font-medium">NRP</label>
-                    <input ref={identifierRef} type="text" id="identifier" className="p-2 text-sm px-2 bg-white/5 border dark:border-white/15 rounded-md" defaultValue={proctoredUser ? proctoredUser.identifier : ""} />
-                </div>
-                <div className="flex flex-col gap-2">
-                    <label htmlFor="name" className="text-sm dark:text-slate-100 font-medium">Name</label>
-                    <input ref={nameRef} type="text" id="name" className="p-2 text-sm px-2 bg-white/5 border dark:border-white/15 rounded-md" defaultValue={proctoredUser ? proctoredUser.name : ""} />
-                </div>
-                <div className="flex flex-col gap-2">
-                    <label htmlFor="email" className="text-sm dark:text-slate-100 font-medium">Email</label>
-                    <input ref={emailRef} type="text" id="email" className="p-2 text-sm px-2 bg-white/5 border dark:border-white/15 rounded-md" defaultValue={proctoredUser ? proctoredUser.email : ""} />
-                </div>
-                <div className="mt-auto flex flex-col gap-1 p-1">
-                    <div className="bg-[#4F46E5] hover:bg-[#4338CA] rounded-xl text-white p-1 text-center text-sm font-medium py-2.5 cursor-pointer transition-colors" onClick={onClick}>
-                        Save Change
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    const handleEditProctoredUser = async (proctoredUser: ProctoredUser) => {
-        handleSheet({ proctoredUser, onClick: () => editProctoredUser({ id: proctoredUser.id, identifier: identifierRef.current.value, name: nameRef.current.value, email: emailRef.current.value }) })
-    }
-
-    const handleAddProctoredUser = async () => {
-        handleSheet({ proctoredUser: null, onClick: () => addProctoredUser({ identifier: identifierRef.current.value, name: nameRef.current.value, email: emailRef.current.value }) })
-    }
-
     const addProctoredUser = async ({ identifier, name, email }: { identifier: string, name: string, email: string }) => {
-        closeSheet()
+        setShowUserForm(false)
         try {
             const jwt = await session()
             const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-user`,
@@ -172,7 +272,7 @@ const ProctoredUserTable = () => {
     }
 
     const editProctoredUser = async ({ id, identifier, name, email }: { id: string, identifier: string, name: string, email: string }) => {
-        closeSheet()
+        setShowUserForm(false)
         try {
             const jwt = await session()
             const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-user`,
@@ -193,34 +293,8 @@ const ProctoredUserTable = () => {
         }
     }
 
-    const roomRef = useRef<HTMLSelectElement>(null)
-
-    const handleGenerateSession = async (id: string) => {
-        openSheet(
-            <div className="w-96 flex flex-col gap-4 h-full">
-                <SheetHeader>Generate New Session</SheetHeader>
-                <p className="text-sm dark:text-slate-500">Generate New Session for User id {id}.</p>
-                <div className="flex flex-col gap-2 mt-20">
-                    <label htmlFor="room" className="text-sm font-medium">RoomId</label>
-                    <select id="room" ref={roomRef} className="p-2 text-sm bg-white/5 border dark:border-white/15 rounded-md">
-                        <option value="">Select a room</option>
-                        {rooms?.map((room) => (
-                            <option key={room.id} value={room.roomId} className="dark:text-slate-700">{room.roomId}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="mt-auto flex flex-col gap-1 p-1">
-                    <div className="bg-[#4F46E5] hover:bg-[#4338CA] rounded-xl text-white p-1 text-center text-sm font-medium py-2.5 cursor-pointer transition-colors" onClick={() => generateSession(id)}>
-                        Generate
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    const generateSession = async (id: string) => {
-        closeSheet()
-        const roomId = roomRef.current.value
+    const generateSession = async (id: string, roomId: string) => {
+        setShowGenerateForm(false)
         try {
             const token = await session();
             const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/session/`, {
@@ -251,11 +325,31 @@ const ProctoredUserTable = () => {
     return (
         <div className="p-8 bg-[#F7F8FA] dark:bg-transparent min-h-full">
 
+            {/* Modals */}
+            {showUserForm && (
+                <UserFormModal
+                    user={editingUser}
+                    onClose={() => setShowUserForm(false)}
+                    onSubmit={(identifier, name, email) =>
+                        editingUser
+                            ? editProctoredUser({ id: editingUser.id, identifier, name, email })
+                            : addProctoredUser({ identifier, name, email })
+                    }
+                />
+            )}
+            {showGenerateForm && generatingUserId && (
+                <GenerateSessionModal
+                    userId={generatingUserId}
+                    rooms={rooms || []}
+                    onClose={() => setShowGenerateForm(false)}
+                    onSubmit={(roomId) => generateSession(generatingUserId, roomId)}
+                />
+            )}
+
             {/* Header bar */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="font-bold text-2xl text-slate-800 dark:text-white">Kelola User</h1>
                 <div className="flex items-center gap-3">
-                    {/* Search */}
                     <div className="flex items-center gap-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 w-64">
                         <Search size={16} className="text-slate-400 flex-shrink-0" />
                         <input
@@ -266,9 +360,8 @@ const ProctoredUserTable = () => {
                             className="bg-transparent text-sm text-slate-700 dark:text-white placeholder:text-slate-400 focus:outline-none w-full"
                         />
                     </div>
-                    {/* Add button */}
                     <button
-                        onClick={handleAddProctoredUser}
+                        onClick={() => { setEditingUser(null); setShowUserForm(true) }}
                         className="flex items-center gap-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#4F46E5]/25 active:scale-95"
                     >
                         <PlusIcon size={16} />
@@ -309,15 +402,11 @@ const ProctoredUserTable = () => {
                                                     <span className="text-sm font-medium text-slate-700 dark:text-white">{user.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
-                                                {user.identifier}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
-                                                {user.email}
-                                            </td>
+                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{user.identifier}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{user.email}</td>
                                             <td className="px-6 py-4">
                                                 <button
-                                                    onClick={() => handleGenerateSession(user.id)}
+                                                    onClick={() => { setGeneratingUserId(user.id); setShowGenerateForm(true) }}
                                                     className="flex items-center gap-1.5 bg-[#4F46E5]/10 hover:bg-[#4F46E5] text-[#4F46E5] hover:text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200"
                                                 >
                                                     <PlusIcon size={12} />
@@ -336,7 +425,7 @@ const ProctoredUserTable = () => {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <button
-                                                        onClick={() => handleEditProctoredUser(user)}
+                                                        onClick={() => { setEditingUser(user); setShowUserForm(true) }}
                                                         className="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:border-[#4F46E5] hover:text-[#4F46E5] text-slate-400 dark:text-slate-500 transition-all duration-200"
                                                     >
                                                         <Pencil size={14} />
@@ -356,8 +445,6 @@ const ProctoredUserTable = () => {
                         </table>
                     </div>
                 </div>
-
-                {/* Footer */}
                 {filtered.length > 0 && (
                     <div className="px-6 py-3 border-t border-slate-50 dark:border-white/5 text-xs text-slate-400">
                         Showing {filtered.length} user{filtered.length !== 1 ? 's' : ''}
