@@ -10,7 +10,6 @@ import { Server as SocketIOServer } from 'socket.io'
 import path from 'path'
 import indexRoutes from './routes/index-routes'
 import { handleSocketConnection, peers, transports } from './sockets/mediasoup-handler'
-import { Socket } from 'dgram'
 import client, { Gauge } from 'prom-client'
 
 const PORT = process.env.PORT || 3000
@@ -73,6 +72,18 @@ register.registerMetric(rttGauge);
 register.registerMetric(packetLossGauge);
 
 const app = express()
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200)
+    return
+  }
+  next()
+})
+
 if (isProduction) {
   server = http.createServer(app)
   server.listen(Number(PORT), '0.0.0.0', () => {
@@ -155,7 +166,7 @@ function isTokenAlreadyUsed(token: string): boolean {
 
 const isOwnerOfTheToken = async (token: string, deviceId: string, userAgent: string, ipAddress: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${process.env.ENDPOINT || 'https://192.168.43.85:5050'}/api/session-detail`, {
+    const response = await fetch(`${process.env.ENDPOINT || 'https://localhost:5050'}/api/session-detail`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
@@ -182,7 +193,7 @@ const isOwnerOfTheToken = async (token: string, deviceId: string, userAgent: str
 
 const verifyToken = async (token: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${process.env.ENDPOINT || "http://192.168.43.85:5050"}/api/signin/${token}`)
+    const response = await fetch(`${process.env.ENDPOINT || "http://localhost:5050"}/api/signin/${token}`)
 
     const data = await response.json()
     if (response.ok) {

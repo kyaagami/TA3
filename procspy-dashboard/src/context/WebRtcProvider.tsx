@@ -107,7 +107,6 @@ export const WebRtcProvider = ({ children }) => {
 
     const [privateMessages, setPrivateMessages] = useState<Array<MessageData>>([])
 
-
     const consumerBufferRef = useRef<Map<string, ConsumerData[]>>(new Map());
 
     const tempRef = useRef([])
@@ -118,12 +117,20 @@ export const WebRtcProvider = ({ children }) => {
                 auth: {
                     secretAdmin: "SECRETBANGET"
                 },
-                transports: ['websocket'],
+                transports: ['polling'],
                 upgrade: false
             })
 
+            socketRef.current.on('connect', () => {
+                console.log('🔌 Socket connected!')
+            })
+
+            socketRef.current.on('connect_error', (err) => {
+                console.log('❌ Socket error:', err.message)
+            })
+
             socketRef.current.on('connection-success', ({ socketId }) => {
-                console.log('🟢 CONNECTED socketId:', socketId)
+                console.log('🟢 connection-success socketId:', socketId)
                 joinRoomConsumer()
             })
 
@@ -132,7 +139,6 @@ export const WebRtcProvider = ({ children }) => {
             }
             socketRef.current.on('producer-closed', handleProducerClosed)
             socketRef.current.on('SERVER_DASHBOARD_PRIVATE_MESSAGE', (message: any) => {
-
                 if (message.action === "PRIVATE_MESSAGE") {
                     const { body } = message
                     setPrivateMessages(prev => {
@@ -149,7 +155,6 @@ export const WebRtcProvider = ({ children }) => {
                         }
                     })
                 }
-
             })
 
             socketRef.current.on('SERVER_DASHBOARD_LOG_MESSAGE', (message: NotificationData) => {
@@ -169,10 +174,7 @@ export const WebRtcProvider = ({ children }) => {
                     }
                 })
             });
-
         }
-
-
 
         return () => {
             if (socketRef.current) {
@@ -248,7 +250,7 @@ export const WebRtcProvider = ({ children }) => {
                 console.log('Cannot Consume', params.error)
                 return
             }
-            console.log('test')
+            console.log('✅ consuming:', params.appData)
             const consumer = await consumerTransport.consume({
                 id: params.id,
                 producerId: params.producerId,
@@ -260,43 +262,6 @@ export const WebRtcProvider = ({ children }) => {
             const socketId = params.appData.socketId
             const token = params.appData.token
 
-
-
-            // const existingPeerIndex = peersRef.current.findIndex(peer => peer.socketId === socketId);
-
-            // setPeers((prev) => {
-            //     const consumerData: ConsumerData = {
-            //         consumerTransport,
-            //         serverConsumerTransportId: params.id,
-            //         producerId: remoteProducerId,
-            //         consumer,
-            //         appData: params.appData
-            //     }
-
-            //     const existingEntry = prev.find(entry => entry.socketId === socketId)
-
-            //     if (existingEntry) {
-            //         return prev.map(entry =>
-            //             entry.socketId === socketId
-            //                 ? { ...entry, consumers: [...entry.consumers, consumerData] }
-            //                 : entry
-            //         )
-            //     } else {
-            //         return [...prev, { token, socketId, consumers: [consumerData] }]
-            //     }
-            // })
-
-
-            // if (existingPeerIndex !== -1) {
-            //     peersRef.current[existingPeerIndex].consumers.push(consumerData);
-            // } else {
-            //     peersRef.current.push({
-            //         token,
-            //         socketId,
-            //         consumers: [consumerData]
-            //     });
-            // }
-
             bufferAndCommitConsumer(token, socketId, {
                 consumerTransport,
                 serverConsumerTransportId: params.id,
@@ -304,7 +269,6 @@ export const WebRtcProvider = ({ children }) => {
                 consumer,
                 appData: params.appData
             });
-
 
             socketRef.current.emit('consumer-resume', { serverConsumerId: params.serverConsumerId })
         })
@@ -327,38 +291,27 @@ export const WebRtcProvider = ({ children }) => {
     }
 
     const handleProducerClosed = ({ remoteProducerId }) => {
-
-        // peersRef.current = peersRef.current.map(entry => ({
-        //     ...entry,
-        //     consumers: entry.consumers.filter((consumer) => consumer.producerId !== remoteProducerId)
-        // })).filter(entry => entry.consumers.length > 0)
         eventRef.current.emit('consumer-removed', remoteProducerId)
         setPeers((prev) => {
             let changed = false;
-
             const next = prev
                 .map(entry => {
                     const newConsumers = entry.consumers.filter(
                         consumer => consumer.producerId !== remoteProducerId
                     );
-
                     if (newConsumers.length !== entry.consumers.length) {
                         changed = true;
                         return { ...entry, consumers: newConsumers };
                     }
-
                     return entry;
                 })
                 .filter(entry => {
-
                     const keep = entry.consumers.length > 0;
                     if (!keep) changed = true;
                     return keep;
                 });
-
             return changed ? next : prev;
         });
-
     }
 
     function bufferAndCommitConsumer(
@@ -367,37 +320,28 @@ export const WebRtcProvider = ({ children }) => {
         consumerData: ConsumerData
     ) {
         const buffer = consumerBufferRef.current;
-
         if (!buffer.has(socketId)) {
             buffer.set(socketId, []);
         }
-
         const list = buffer.get(socketId)!;
-
         if (list.some(c => c.producerId === consumerData.producerId)) {
             return;
         }
-
-        list.push(consumerData)
-
+        list.push(consumerData);
         console.log(`📊 buffer for ${socketId}: ${list.length}/4`)
-
         if (list.length === 4) {
             console.log('✅ 4 consumers ready!')
             const consumers = [...list];
             buffer.delete(socketId);
-
             setPeers(prev => {
                 const existing = prev.find(p => p.socketId === socketId);
                 if (existing) {
                     return prev;
                 }
-
                 return [...prev, { token, socketId, consumers }];
             });
         }
     }
-
 
     const value = { data, setData, eventRef, peers, notificationCount, setNotificationCount, socketRef, connected, privateMessages, setPrivateMessages }
 

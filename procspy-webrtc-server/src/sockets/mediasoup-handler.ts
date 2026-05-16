@@ -69,7 +69,7 @@ const mediaCodecs: RtpCodecCapability[] = [
       'x-google-start-bitrate': 1000,
     },
   }
-] 
+]
 
 
 const createWorker = async () => {
@@ -723,5 +723,3 @@ export const handleSocketConnection = async (socket: Socket) => {
   };
 
 };
-
-

@@ -1,57 +1,48 @@
 "use client"
-import { redirect, useParams, useRouter } from "next/navigation";
-import Header from "../../../../../../components/ui/Header";
-import HeaderTitle from "../../../../../../components/ui/HeaderTitle";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import session from "../../../../../../lib/session";
-import { BodyTable, LogProps } from "../../../../room/[roomId]/logs/components/LogsTable";
-import PopOver from "../../../../../../components/ui/PopOver";
-import PopOverItem from "../../../../../../components/ui/PopOverItem";
-import DraggableTimeline from "../components/DraggableTimeline";
+import { LogProps } from "../../../../room/[roomId]/logs/components/LogsTable";
 import ConfirmLogButton from "../../../../room/[roomId]/logs/components/ui/ConfirmLogButton";
-import { FlagIcon, InfoIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { formattedTimestamp } from "../../../../../utils/timestamp";
 import { FraudLevel, SessionResultProps } from "../../../../room/[roomId]/users/components/UserSessionTable";
 
+const fraudLevelBadge: Record<string, string> = {
+    CRITICAL: "bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/30",
+    HIGH:     "bg-orange-50 text-orange-600 border border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/30",
+    MEDIUM:   "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30",
+    LOW:      "bg-green-50 text-green-600 border border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/30",
+}
 
-
+const severityBg = (s: number) =>
+    s >= 3 ? "bg-red-500" : s === 2 ? "bg-orange-400" : "bg-amber-400"
 
 export default function AnalyticsPage() {
-    const { token } = useParams()
+    const { token, userId } = useParams()
     const router = useRouter()
+
     const [dataPoints, setDataPoints] = useState<Array<LogProps>>([])
-    const [renderedFile, setRenderedFile] = useState(null)
-    const [threeDataLog, setThreeDataLog] = useState<Array<LogProps | null>>([])
-
-    const [currentIndex, setCurrentIndex] = useState(0)
-    const [currentId, setCurrentId] = useState("")
-
-    const [dataCounter, setDataCounter] = useState([])
-
+    const [dataCounter, setDataCounter] = useState<Array<{ flagKey: string; count: number }>>([])
     const [sessionResult, setSessionResult] = useState<SessionResultProps>(null)
     const [threshold, setThreshold] = useState(1)
-
     const [updateLog, setUpdateLog] = useState(0)
+    const [userName, setUserName] = useState<string>("")
+    const [selectedLog, setSelectedLog] = useState<LogProps | null>(null)
+    const [filterKey, setFilterKey] = useState<string | null>(null)
+    const [showFilter, setShowFilter] = useState(false)
+
     const fetchlogs = async (nextPage: number, limit: number) => {
         try {
             const jwt = await session();
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/logs-proctored-user/${token}?page=${nextPage}&paginationLimit=${limit}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${jwt}`,
-                    },
-                }
+                { headers: { Authorization: `Bearer ${jwt}` } }
             );
             const data = await res.json();
-            if (res.ok) {
-                return data
-            }
-        } catch (err) {
-            console.error("Failed to fetch logs history", err);
-        }
-
-        return null
+            if (res.ok) return data;
+        } catch (err) { console.error("Failed to fetch logs", err); }
+        return null;
     };
 
     const fetchSessionResult = async () => {
@@ -59,24 +50,42 @@ export default function AnalyticsPage() {
             const jwt = await session();
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/session-result-token/${token}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${jwt}`,
-                    },
-                }
-
+                { headers: { Authorization: `Bearer ${jwt}` } }
             );
             if (res.ok) {
                 const data = await res.json()
-                if (data.name) {
-                    router.back()
-                    return null
-                }
+                if (data.name) { router.back(); return; }
                 setSessionResult(data)
             }
-        } catch (error) {
+        } catch (error) { }
+    }
 
-        }
+    const fetchGlobalSetting = async () => {
+        try {
+            const t = await session();
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-settings?page=1&paginationLimit=1`, {
+                headers: { Authorization: `Bearer ${t}` },
+            });
+            if (response.ok) {
+                const { data } = await response.json()
+                setThreshold(parseInt(data[0].value))
+            }
+        } catch (error) { }
+    }
+
+    const fetchUserName = async () => {
+        try {
+            const t = await session();
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-users?page=1&paginationLimit=100`,
+                { headers: { Authorization: `Bearer ${t}` } }
+            )
+            if (res.ok) {
+                const data = await res.json()
+                const user = data.data.find((u: any) => u.id === userId)
+                if (user) setUserName(user.name)
+            }
+        } catch (err) { }
     }
 
     useEffect(() => {
@@ -84,273 +93,293 @@ export default function AnalyticsPage() {
             try {
                 const { total } = await fetchlogs(1, 1);
                 if (!total) return;
-
                 const { data } = await fetchlogs(1, total);
-                setDataPoints(data.reverse());
-                setDataCounter(() => {
-                    const result = Object.entries(
-                        data.reduce((acc, item) => {
+                const reversed = data.reverse();
+                setDataPoints(reversed);
+                setSelectedLog(reversed[0] ?? null);
+                setDataCounter(
+                    Object.entries(
+                        data.reduce((acc: any, item: LogProps) => {
                             acc[item.flagKey] = (acc[item.flagKey] || 0) + 1;
                             return acc;
                         }, {})
-                    ).map(([flagKey, count]) => ({ flagKey, count }))
-
-                    return result
-                })
-            } catch (e) {
-                console.error("Error loading data", e);
-            }
+                    ).map(([flagKey, count]) => ({ flagKey, count: count as number }))
+                )
+            } catch (e) { console.error("Error loading data", e); }
         };
         fetchSessionResult()
         fetchGlobalSetting()
-        setCurrentId(null)
-        setCurrentIndex(0)
+        fetchUserName()
         loadAllData();
     }, [updateLog]);
 
-    const timeline = useMemo(() => {
-        if (dataPoints.length === 0) return [];
+    const filteredLogs = filterKey ? dataPoints.filter(d => d.flagKey === filterKey) : dataPoints
+    const reviewedCount = dataPoints.filter(d => d.logType !== "System").length
+    const selectedIndex = filteredLogs.findIndex(d => d.id === selectedLog?.id)
+    const handlePrev = () => { if (selectedIndex > 0) setSelectedLog(filteredLogs[selectedIndex - 1]) }
+    const handleNext = () => { if (selectedIndex < filteredLogs.length - 1) setSelectedLog(filteredLogs[selectedIndex + 1]) }
 
-        const logs = dataPoints.map((d) => ({
-            ...d,
-            timestamp: new Date(d.timestamp),
-        }));
-
-        const timestamps = logs.map((d) => d.timestamp.getTime());
-        let min = new Date(Math.min(...timestamps));
-        let max = new Date(Math.max(...timestamps));
-        const durationMs = max.getTime() - min.getTime();
-        const oneHourMs = 60 * 60 * 1000;
-
-        if (durationMs < oneHourMs) {
-            max = new Date(min.getTime() + oneHourMs);
+    const duration = useMemo(() => {
+        if (dataPoints.length < 2) return null;
+        const first = new Date(dataPoints[0].timestamp)
+        const last = new Date(dataPoints[dataPoints.length - 1].timestamp)
+        const diffMs = last.getTime() - first.getTime()
+        return {
+            minutes: Math.floor(diffMs / 60000),
+            started: first.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            ended: last.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
         }
-        min = new Date(min.getTime() - 60 * 2 * 1000)
-        max = new Date(max.getTime() + 60 * 5 * 1000)
-        const timeline = [];
-        let current = new Date(min);
-
-        while (current <= max) {
-            const minuteLogs = logs.filter((d) =>
-                Math.floor(d.timestamp.getTime() / 15000) === Math.floor(current.getTime() / 15000)
-            );
-
-            timeline.push({
-                time: new Date(current),
-                logs: minuteLogs,
-            });
-
-            current = new Date(current.getTime() + 15 * 1000); // +n minute
-        }
-
-        setThreeDataLog([null, dataPoints[0], dataPoints[1]])
-
-        return timeline;
     }, [dataPoints])
 
-    const handleRenderImage = (id: string) => {
-        const index = dataPoints.findIndex((item) => item.id === id);
-        if (index === -1) {
-            setThreeDataLog([]);
-            return;
-        }
-        loadIndex(index)
-    }
-
-    const loadIndex = (index: number) => {
-        const prevItem = dataPoints[index - 1] || null;
-        const currentItem = dataPoints[index];
-        const nextItem = dataPoints[index + 1] || null;
-        setCurrentId(dataPoints[index].id)
-        const newThree = [];
-        newThree.push(prevItem);
-        newThree.push(currentItem);
-        newThree.push(nextItem);
-        setRenderedFile(currentItem.attachment?.file ?? null)
-        setCurrentIndex(index)
-        setThreeDataLog(newThree);
-    }
-
-    const handleNextItem = () => {
-        loadIndex(currentIndex + 1)
-    }
-
-    const handlePrevItem = () => {
-        if (currentIndex != 0) {
-            loadIndex(currentIndex - 1)
-        }
-    }
-
-    const fetchGlobalSetting = async () => {
-            try {
-                const token = await session();
-                const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-settings?page=1&paginationLimit=1`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-    
-                if (response.ok) {
-                    const { data } = await response.json()
-                    setThreshold(parseInt(data[0].value))
-                }
-            } catch (error) {
-    
-            }
-        }
-
-    const calcFraudLevel = (totalSeverity: number) => {
-        const percentOfThreshold = (totalSeverity / threshold) * 100;
-
-        return percentOfThreshold >= 90 ? FraudLevel.CRITICAL :
-            percentOfThreshold >= 65 ? FraudLevel.HIGH :
-                percentOfThreshold >= 25 ? FraudLevel.MEDIUM :
-                    FraudLevel.LOW;
-    }
-
-
     return (
-        <div className="flex flex-col h-full max-h-[90vh] oveflow-hidden">
-            <div className="max-h-[60vh] h-full w-full flex">
-                <div className="h-full min-w-[20%] border-r dark:border-white/15 p-8">
-                    {sessionResult && (
-                        <table className="w-full text-sm ">
-                            <tbody>
-                                <tr>
-                                    <td className="py-2 pr-4 text-gray-400">Total Severity</td>
-                                    <td className="py-2 text-blue-500">{sessionResult.totalSeverity}</td>
-                                </tr>
-                                <tr>
-                                    <td className="py-2 pr-4 text-gray-400">Total Flags</td>
-                                    <td className="py-2 text-blue-500">{sessionResult.totalFlags}</td>
-                                </tr>
-                                <tr>
-                                    <td className="py-2 pr-4 text-gray-400">Fraud Level</td>
-                                    <td className="py-2 text-blue-500">{sessionResult.fraudLevel}</td>
-                                </tr>
-                                <tr>
-                                    <td className="py-2 pr-4 text-gray-400">True Severity</td>
-                                    <td className="py-2 text-blue-500">{sessionResult.trueSeverity}</td>
-                                </tr>
-                                <tr>
-                                    <td className="py-2 pr-4 text-gray-400">False Detection</td>
-                                    <td className="py-2 text-blue-500">{sessionResult.falseDetection}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    )}
-                    {
-                        dataCounter && (
-                            <div className="flex gap-1 flex-wrap mt-2">
-                                {dataCounter.map((e) => (
-                                    <div className="text-xs bg-red-500 text-white rounded p-1 px-2">
-                                        <span className="bg-white text-black rounded px-1 mr-2">{e.count}</span>
-                                        {e.flagKey}
-                                    </div>
-                                ))}
-                            </div>
-                        )
-                    }
-                </div>
-                <div className="h-full w-full max-w-[72vw] overflow-hidden ">
-                    <div className="h-full flex flex-col justify-between">
-                        <div className="w-full h-full flex justify-center items-center">
-                            {
-                                renderedFile ? <div className="max-h-[45vh] min-h-[45vh] border aspect-video rounded">
-                                    <img className="rounded-md" src={`${process.env.NEXT_PUBLIC_STORAGE_ENDPOINT || 'https://192.168.43.85:5050'}` + renderedFile} alt=""
+        <div className="p-8 bg-[#F7F8FA] dark:bg-transparent min-h-screen flex flex-col gap-6">
 
-                                    />
-                                </div> : <div className="text-xs">No Image</div>
-                            }
+            {/* Header — sama seperti halaman lain */}
+            <h1 className="font-bold text-2xl text-slate-800 dark:text-white">
+                {userName || "..."} / Analytics
+            </h1>
+
+            {/* 3-panel: kiri | tengah | kanan */}
+            <div className="flex gap-4 overflow-hidden" style={{ height: 'calc(100vh - 170px)' }}>
+
+                {/* ── KIRI: Summary + Review Progress ── */}
+                <div className="flex flex-col gap-4 w-[20%] flex-shrink-0 overflow-hidden">
+                    {/* Summary */}
+                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 flex flex-col gap-4">
+                        <h2 className="font-semibold text-lg text-slate-800 dark:text-white">Summary</h2>
+                        {sessionResult ? (
+                            <>
+                                <div>
+                                    <p className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Fraud Level</p>
+                                    <span className={`text-xs font-semibold px-3 py-1.5 rounded-lg ${fraudLevelBadge[sessionResult.fraudLevel] || fraudLevelBadge.LOW}`}>
+                                        {sessionResult.fraudLevel}
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 pt-1">
+                                    <div>
+                                        <p className="text-xs text-slate-400">Flags</p>
+                                        <p className="text-3xl font-bold text-slate-800 dark:text-white">{sessionResult.totalFlags}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400">Severity</p>
+                                        <p className="text-3xl font-bold text-red-500">{sessionResult.totalSeverity}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400">True</p>
+                                        <p className="text-3xl font-bold text-slate-800 dark:text-white">{sessionResult.trueSeverity}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400">False</p>
+                                        <p className="text-3xl font-bold text-slate-800 dark:text-white">{sessionResult.falseDetection}</p>
+                                    </div>
+                                </div>
+                                <div className="pt-1">
+                                    <p className="text-xs text-slate-400 mb-2">Flag breakdown</p>
+                                    <div className="flex flex-col gap-2">
+                                        {dataCounter.map(({ flagKey, count }) => (
+                                            <div key={flagKey} className="flex items-center justify-between">
+                                                <span className="text-xs bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 px-2 py-0.5 rounded-lg font-medium">
+                                                    {flagKey}
+                                                </span>
+                                                <span className="text-sm font-semibold text-slate-700 dark:text-white">{count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="text-xs text-slate-400">Memuat...</div>
+                        )}
+                    </div>
+
+                    {/* Review Progress */}
+                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 flex flex-col gap-4">
+                        <h2 className="font-semibold text-lg text-slate-800 dark:text-white">Review progress</h2>
+                        <div>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <span className="text-3xl font-bold text-slate-800 dark:text-white">{reviewedCount}</span>
+                                <span className="ml-1">of {dataPoints.length} reviewed</span>
+                            </p>
+                            <div className="mt-3 h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-[#4F46E5] rounded-full transition-all"
+                                    style={{ width: dataPoints.length > 0 ? `${(reviewedCount / dataPoints.length) * 100}%` : '0%' }}
+                                />
+                            </div>
                         </div>
-                        <DraggableTimeline currentId={currentId} handleRenderImage={handleRenderImage} timeline={timeline}></DraggableTimeline>
+                        {duration && (
+                            <div className="flex flex-col gap-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-slate-400">Duration</span>
+                                    <span className="font-medium text-slate-700 dark:text-white">{duration.minutes} minutes</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-400">Started</span>
+                                    <span className="font-medium text-slate-700 dark:text-white">{duration.started}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-400">Ended</span>
+                                    <span className="font-medium text-slate-700 dark:text-white">{duration.ended}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-            </div>
-            <div className="max-h-[30vh] h-full w-full ">
-                <table className="min-w-full table-fixed h-full">
 
-                    <thead className=" dark:bg-black border-t dark:border-white/15">
-                        <tr>
-                            <th className="pl-8 pr-4 py-2 text-right font-normal dark:text-slate-100/75 text-sm">Timestamp</th>
-                            <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Severity</th>
-                            <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm"></th>
-                            <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Flag Key</th>
-                            <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Flag Detail</th>
-                            <th className="px-4 py-2 text-left font-normal dark:text-slate-100/75 text-sm">Detect As</th>
-                            <th className="pr-8 pl-4 text-left font-normal dark:text-slate-100/75 text-sm">Action</th>
-                            <th className="pr-8 pl-4 text-left font-normal dark:text-slate-100/75 text-sm">Navigation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {threeDataLog.map((e, idx) =>
-                            e != null ? (
-                                <tr
-                                    key={e?.id}
-                                    className="border-t dark:border-white/10 dark:hover:bg-gray-600/30 hover:bg-black/5 h-[33%]"
-
+                {/* ── TENGAH: Event list ── */}
+                <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 flex flex-col w-[35%] flex-shrink-0 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between flex-shrink-0">
+                        <h2 className="font-semibold text-slate-800 dark:text-white">Event</h2>
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowFilter(v => !v)}
+                                className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-[#4F46E5] hover:text-[#4F46E5] transition-all"
+                            >
+                                <Filter size={12} /> Filter
+                            </button>
+                            {showFilter && (
+                                <div
+                                    className="absolute top-10 right-0 z-20 bg-white dark:bg-[#0f0f13] border border-slate-100 dark:border-white/10 rounded-xl shadow-xl p-4 min-w-[220px]"
+                                    style={{ animation: 'filterIn 0.2s cubic-bezier(0.16,1,0.3,1)' }}
                                 >
-
-                                    <td className="pl-8 pr-4 py-3 text-xs capitalize text-right dark:text-slate-100/75">
-                                        {formattedTimestamp(e.timestamp)}
-                                    </td>
-                                    <td className="px-4 py-3 text-xs capitalize">
-                                        <div className="bg-red-500 text-white w-min rounded p-1 px-2">
-                                            {e.flag.severity}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 min-w-min">
-                                        <FlagIcon />
-                                    </td>
-                                    <td className="px-4 py-3 text-xs font-semibold">
-                                        {e.flagKey || "-"}
-                                    </td>
-                                    <td className="px-4 py-3 text-xs ">
-                                        <div className="flex flex-col gap-2">
-                                            <div className="font-medium">
-                                                {e.flag.label || "-"}{" "}
-                                                {(e.attachment.title || e.attachment?.shortcut) && <span className="font-normal bg-white/10 dark:border-white/15 rounded px-1 border"> {e.attachment?.title ? e.attachment.title : e.attachment.shortcut ? e.attachment.shortcut : "Unknown"}</span>} {(e.attachment.url || e.attachment?.desc) && <span className="font-light rounded px-1 italic text-sky-500 "> {e.attachment?.url ? e.attachment.url : e.attachment?.desc ? e.attachment.desc : "Unknown"}</span>}
-                                                {/* {e.attachment.url && (
-                                                    <span className="font-light rounded px-1 italic text-sky-500">
-                                                        {" "}
-                                                        {e.attachment?.url ?? "Unknown"}
-                                                    </span>
-                                                )} */}
-                                            </div>
-
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-xs font-semibold">
-                                        {e.logType || "-"}
-                                    </td>
-                                    <td className="pr-8 pl-4 py-3 text-xs capitalize">
-                                        {!["CONNECT", "DISCONNECT"].includes(e.flagKey) && (
-                                            <ConfirmLogButton callback={() => setUpdateLog((prev) => prev + 1)} id={e.id} currentLogType={"System"} />
-                                        )}
-                                    </td>
-                                    <td>
-                                        <button className="bg-blue-500 text-white rounded-md text-sm p-1 px-2 w-max"
-                                            onClick={
-                                                () => {
-                                                    return idx === 0 ? handlePrevItem() : idx === 1 ? "Current" : handleNextItem()
-                                                }
-                                            }
+                                    <style>{`
+                                        @keyframes filterIn {
+                                            from { opacity: 0; transform: scale(0.95) translateY(-8px); }
+                                            to   { opacity: 1; transform: scale(1) translateY(0); }
+                                        }
+                                    `}</style>
+                                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Filter</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            onClick={() => { setFilterKey(null); setShowFilter(false) }}
+                                            className={`text-xs px-3 py-1 rounded-lg font-medium border transition-all ${filterKey === null ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'}`}
                                         >
-                                            {idx === 0 ? "Previous" : idx === 1 ? "Current" : "Next"}
+                                            ALL {dataPoints.length}
                                         </button>
+                                        {dataCounter.map(({ flagKey, count }) => (
+                                            <button
+                                                key={flagKey}
+                                                onClick={() => { setFilterKey(flagKey); setShowFilter(false) }}
+                                                className={`text-xs px-3 py-1 rounded-lg font-medium border transition-all ${filterKey === flagKey ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'}`}
+                                            >
+                                                {flagKey} {count}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                        {filteredLogs.length === 0 ? (
+                            <div className="text-center py-12 text-slate-400 text-sm">Tidak ada event</div>
+                        ) : filteredLogs.map((log) => (
+                            <button
+                                key={log.id}
+                                onClick={() => setSelectedLog(log)}
+                                className={`w-full px-5 py-3.5 flex items-start gap-3 border-b border-slate-50 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left ${selectedLog?.id === log.id ? 'bg-indigo-50 dark:bg-[#4F46E5]/10 border-l-2 border-l-[#4F46E5]' : ''}`}
+                            >
+                                <div className={`w-8 h-8 rounded-lg ${severityBg(log.flag?.severity ?? 0)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                                    {log.flag?.severity ?? 0}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <span className="text-xs font-semibold bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 px-2 py-0.5 rounded-lg">
+                                        {log.flagKey}
+                                    </span>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+                                        {log.flag?.label || log.flagKey}
+                                    </p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-                                    </td>
-                                </tr>
-                            ) : (<tr key={idx}>
-                                <td colSpan={7} className="text-xs text-center text-gray-300">No Data</td>
-                                <td><button className="bg-blue-500 text-white rounded-md text-sm p-1 px-2 w-max cursor-not-allowed" disabled>
-                                    {idx === 0 ? "Previous" : idx === 1 ? "Current" : "Next"}
-                                </button></td>
-                            </tr>)
-                        )}
+                {/* ── KANAN: Screenshot + Detail ── */}
+                <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 flex flex-col flex-1 overflow-hidden">
+                    {selectedLog ? (
+                        <>
+                            {/* Nav */}
+                            <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between flex-shrink-0">
+                                <h3 className="font-semibold text-slate-800 dark:text-white truncate max-w-[70%]">
+                                    {selectedLog.flag?.label || selectedLog.flagKey}
+                                </h3>
+                                <div className="flex items-center gap-1.5">
+                                    <button onClick={handlePrev} disabled={selectedIndex <= 0}
+                                        className="p-2 rounded-lg border border-slate-200 dark:border-white/10 disabled:opacity-30 hover:border-[#4F46E5] hover:text-[#4F46E5] transition-all">
+                                        <ChevronLeft size={14} />
+                                    </button>
+                                    <button onClick={handleNext} disabled={selectedIndex >= filteredLogs.length - 1}
+                                        className="p-2 rounded-lg border border-slate-200 dark:border-white/10 disabled:opacity-30 hover:border-[#4F46E5] hover:text-[#4F46E5] transition-all">
+                                        <ChevronRight size={14} />
+                                    </button>
+                                </div>
+                            </div>
 
-                    </tbody>
-                </table>
+                            {/* Screenshot */}
+                            <div className="bg-slate-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0" style={{ height: '50%' }}>
+                                {selectedLog.attachment?.file ? (
+                                    <img
+                                        src={`${process.env.NEXT_PUBLIC_STORAGE_ENDPOINT || process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}${selectedLog.attachment.file}`}
+                                        alt="screenshot"
+                                        className="w-full h-full object-contain"
+                                    />
+                                ) : (
+                                    <span className="text-sm text-slate-400">Tidak ada screenshot</span>
+                                )}
+                            </div>
+
+                            {/* Detail */}
+                            <div className="p-6 flex flex-col gap-5 overflow-y-auto flex-1">
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-2">Flag</p>
+                                        <span className="text-xs font-semibold bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 px-3 py-1 rounded-lg">
+                                            {selectedLog.flagKey}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-2">Severity</p>
+                                        <span className={`text-sm font-bold text-white px-3 py-1 rounded-lg ${severityBg(selectedLog.flag?.severity ?? 0)}`}>
+                                            {selectedLog.flag?.severity ?? 0}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Detect As</p>
+                                        <p className="text-sm font-medium text-slate-700 dark:text-white">{selectedLog.logType || "-"}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Time</p>
+                                        <p className="text-sm font-medium text-slate-700 dark:text-white">{formattedTimestamp(selectedLog.timestamp)}</p>
+                                    </div>
+                                </div>
+
+                                {(selectedLog.attachment?.url || selectedLog.attachment?.desc) && (
+                                    <div>
+                                        <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Detail</p>
+                                        <p className="text-sm text-blue-500 italic break-all">
+                                            {selectedLog.attachment?.url || selectedLog.attachment?.desc}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {!["CONNECT", "DISCONNECT"].includes(selectedLog.flagKey) && (
+                                    <div className="mt-auto pt-2">
+                                        <ConfirmLogButton
+                                            callback={() => setUpdateLog(p => p + 1)}
+                                            id={selectedLog.id}
+                                            currentLogType={selectedLog.logType || "System"}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
+                            Pilih event untuk melihat detail
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
