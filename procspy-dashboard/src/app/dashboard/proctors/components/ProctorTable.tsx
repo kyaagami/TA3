@@ -136,7 +136,7 @@ const ProctorTable = () => {
     const fetchProctor = async (nextPage: number) => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/users?page=${nextPage}&paginationLimit=20`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/users?page=${nextPage}&paginationLimit=20`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
@@ -166,7 +166,7 @@ const ProctorTable = () => {
         setShowForm(false)
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/register`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/register`,
                 { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` }, body: JSON.stringify({ username, name, email, password }) }
             )
             const data = await response.json()
@@ -188,7 +188,7 @@ const ProctorTable = () => {
         setShowForm(false)
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/user`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/user`,
                 { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` }, body: JSON.stringify({ id, username, name, email }) }
             )
             if (response.ok) {
@@ -209,7 +209,7 @@ const ProctorTable = () => {
     const activateUser = async (id: string) => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/activate-user/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/activate-user/${id}`, {
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             });
             const data = await res.json()

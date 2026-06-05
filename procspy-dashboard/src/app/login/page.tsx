@@ -28,7 +28,7 @@ export default function Page() {
             formData.forEach((value, key) => {
                 formObject[key] = value.toString();
             });
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/login`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/login`, {
                 method: 'POST',
                 body: JSON.stringify(formObject),
                 headers: {

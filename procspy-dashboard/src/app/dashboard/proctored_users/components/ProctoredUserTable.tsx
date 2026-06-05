@@ -177,7 +177,7 @@ const ProctoredUserTable = () => {
     const fetchProctoredUsers = async (nextPage: number) => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-users?page=${nextPage}&paginationLimit=20`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-users?page=${nextPage}&paginationLimit=20`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
@@ -198,7 +198,7 @@ const ProctoredUserTable = () => {
     const fetchRooms = async () => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/rooms`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/rooms`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
@@ -230,7 +230,7 @@ const ProctoredUserTable = () => {
     const deleteProctoredUser = async (id: string) => {
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-user/${id}`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-user/${id}`,
                 { method: "DELETE", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` } }
             )
             if (response.ok) {
@@ -252,7 +252,7 @@ const ProctoredUserTable = () => {
         setShowUserForm(false)
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-user`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-user`,
                 { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` }, body: JSON.stringify({ identifier, name, email }) }
             )
             const data = await response.json()
@@ -275,7 +275,7 @@ const ProctoredUserTable = () => {
         setShowUserForm(false)
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-user`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-user`,
                 { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` }, body: JSON.stringify({ id, identifier, name, email }) }
             )
             if (response.ok) {
@@ -297,7 +297,7 @@ const ProctoredUserTable = () => {
         setShowGenerateForm(false)
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/session/`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || "https://202.10.34.67:5050"}/api/session/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ proctoredUserId: id, roomId }),

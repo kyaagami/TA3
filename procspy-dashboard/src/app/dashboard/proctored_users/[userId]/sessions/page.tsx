@@ -14,7 +14,7 @@ export default function Page() {
             try {
                 const token = await session()
                 const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-users?page=1&paginationLimit=100`,
+                    `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-users?page=1&paginationLimit=100`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 )
                 if (res.ok) {

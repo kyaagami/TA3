@@ -110,7 +110,7 @@ const UserSessionTable = () => {
     const fetchSessions = async (nextPage: number) => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/sessions-in-room/${roomId}?page=${nextPage}&paginationLimit=20`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/sessions-in-room/${roomId}?page=${nextPage}&paginationLimit=20`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
@@ -140,7 +140,7 @@ const UserSessionTable = () => {
     const fetchGlobalSetting = async () => {
         try {
             const token = await session();
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-settings?page=1&paginationLimit=1`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/global-settings?page=1&paginationLimit=1`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {

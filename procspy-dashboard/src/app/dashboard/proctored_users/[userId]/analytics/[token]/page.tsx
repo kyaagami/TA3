@@ -32,11 +32,16 @@ export default function AnalyticsPage() {
     const [filterKey, setFilterKey] = useState<string | null>(null)
     const [showFilter, setShowFilter] = useState(false)
 
+    useEffect(() => {
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = '' }
+    }, [])
+
     const fetchlogs = async (nextPage: number, limit: number) => {
         try {
             const jwt = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/logs-proctored-user/${token}?page=${nextPage}&paginationLimit=${limit}`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://202.10.34.67:5050"}/api/logs-proctored-user/${token}?page=${nextPage}&paginationLimit=${limit}`,
                 { headers: { Authorization: `Bearer ${jwt}` } }
             );
             const data = await res.json();
@@ -49,7 +54,7 @@ export default function AnalyticsPage() {
         try {
             const jwt = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://192.168.43.85:5050"}/api/session-result-token/${token}`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || "https://202.10.34.67:5050"}/api/session-result-token/${token}`,
                 { headers: { Authorization: `Bearer ${jwt}` } }
             );
             if (res.ok) {
@@ -63,7 +68,7 @@ export default function AnalyticsPage() {
     const fetchGlobalSetting = async () => {
         try {
             const t = await session();
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/global-settings?page=1&paginationLimit=1`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/global-settings?page=1&paginationLimit=1`, {
                 headers: { Authorization: `Bearer ${t}` },
             });
             if (response.ok) {
@@ -77,7 +82,7 @@ export default function AnalyticsPage() {
         try {
             const t = await session();
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/proctored-users?page=1&paginationLimit=100`,
+                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-users?page=1&paginationLimit=100`,
                 { headers: { Authorization: `Bearer ${t}` } }
             )
             if (res.ok) {
@@ -132,20 +137,27 @@ export default function AnalyticsPage() {
     }, [dataPoints])
 
     return (
-        <div className="p-8 bg-[#F7F8FA] dark:bg-transparent min-h-screen flex flex-col gap-6">
+        <div className="p-8 bg-[#F7F8FA] dark:bg-transparent flex flex-col gap-6 overflow-hidden" style={{ height: '100vh' }}>
 
-            {/* Header — sama seperti halaman lain */}
-            <h1 className="font-bold text-2xl text-slate-800 dark:text-white">
+            <h1 className="font-bold text-2xl text-slate-800 dark:text-white flex-shrink-0">
                 {userName || "..."} / Analytics
             </h1>
 
-            {/* 3-panel: kiri | tengah | kanan */}
-            <div className="flex gap-4 overflow-hidden" style={{ height: 'calc(100vh - 170px)' }}>
+            {/* 3 panel — responsif, tinggi sisa viewport */}
+            <div className="flex gap-4 min-h-0 flex-1">
 
-                {/* ── KIRI: Summary + Review Progress ── */}
-                <div className="flex flex-col gap-4 w-[20%] flex-shrink-0 overflow-hidden">
+                {/* ── KIRI ── */}
+                <div className="flex flex-col gap-4 w-64 xl:w-72 flex-shrink-0 overflow-y-auto
+                    [&::-webkit-scrollbar]:w-1.5
+                    [&::-webkit-scrollbar-track]:rounded-full
+                    [&::-webkit-scrollbar-track]:bg-slate-100
+                    [&::-webkit-scrollbar-thumb]:rounded-full
+                    [&::-webkit-scrollbar-thumb]:bg-slate-300
+                    dark:[&::-webkit-scrollbar-track]:bg-white/5
+                    dark:[&::-webkit-scrollbar-thumb]:bg-white/20
+                ">
                     {/* Summary */}
-                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 flex flex-col gap-4">
+                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 flex flex-col gap-4 flex-shrink-0">
                         <h2 className="font-semibold text-lg text-slate-800 dark:text-white">Summary</h2>
                         {sessionResult ? (
                             <>
@@ -175,10 +187,18 @@ export default function AnalyticsPage() {
                                 </div>
                                 <div className="pt-1">
                                     <p className="text-xs text-slate-400 mb-2">Flag breakdown</p>
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-2
+                                        [&::-webkit-scrollbar]:w-1.5
+                                        [&::-webkit-scrollbar-track]:rounded-full
+                                        [&::-webkit-scrollbar-track]:bg-slate-100
+                                        [&::-webkit-scrollbar-thumb]:rounded-full
+                                        [&::-webkit-scrollbar-thumb]:bg-slate-300
+                                        dark:[&::-webkit-scrollbar-track]:bg-white/5
+                                        dark:[&::-webkit-scrollbar-thumb]:bg-white/20
+                                    ">
                                         {dataCounter.map(({ flagKey, count }) => (
                                             <div key={flagKey} className="flex items-center justify-between">
-                                                <span className="text-xs bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 px-2 py-0.5 rounded-lg font-medium">
+                                                <span className="text-xs bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 px-2 py-0.5 rounded-lg font-medium truncate max-w-[75%]">
                                                     {flagKey}
                                                 </span>
                                                 <span className="text-sm font-semibold text-slate-700 dark:text-white">{count}</span>
@@ -193,7 +213,7 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* Review Progress */}
-                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 flex flex-col gap-4">
+                    <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 flex flex-col gap-4 flex-shrink-0">
                         <h2 className="font-semibold text-lg text-slate-800 dark:text-white">Review progress</h2>
                         <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -226,8 +246,8 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
 
-                {/* ── TENGAH: Event list ── */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 flex flex-col w-[35%] flex-shrink-0 overflow-hidden">
+                {/* ── TENGAH ── */}
+                <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 flex flex-col flex-1 min-h-0 overflow-hidden">
                     <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between flex-shrink-0">
                         <h2 className="font-semibold text-slate-800 dark:text-white">Event</h2>
                         <div className="relative">
@@ -270,7 +290,15 @@ export default function AnalyticsPage() {
                             )}
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="overflow-y-auto flex-1
+                        [&::-webkit-scrollbar]:w-1.5
+                        [&::-webkit-scrollbar-track]:rounded-full
+                        [&::-webkit-scrollbar-track]:bg-slate-100
+                        [&::-webkit-scrollbar-thumb]:rounded-full
+                        [&::-webkit-scrollbar-thumb]:bg-slate-300
+                        dark:[&::-webkit-scrollbar-track]:bg-white/5
+                        dark:[&::-webkit-scrollbar-thumb]:bg-white/20
+                    ">
                         {filteredLogs.length === 0 ? (
                             <div className="text-center py-12 text-slate-400 text-sm">Tidak ada event</div>
                         ) : filteredLogs.map((log) => (
@@ -295,11 +323,10 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
 
-                {/* ── KANAN: Screenshot + Detail ── */}
-                <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 flex flex-col flex-1 overflow-hidden">
+                {/* ── KANAN ── */}
+                <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 flex flex-col flex-1 min-h-0 overflow-hidden">
                     {selectedLog ? (
                         <>
-                            {/* Nav */}
                             <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between flex-shrink-0">
                                 <h3 className="font-semibold text-slate-800 dark:text-white truncate max-w-[70%]">
                                     {selectedLog.flag?.label || selectedLog.flagKey}
@@ -315,12 +342,10 @@ export default function AnalyticsPage() {
                                     </button>
                                 </div>
                             </div>
-
-                            {/* Screenshot */}
-                            <div className="bg-slate-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0" style={{ height: '50%' }}>
+                            <div className="bg-slate-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0" style={{ height: '45%' }}>
                                 {selectedLog.attachment?.file ? (
                                     <img
-                                        src={`${process.env.NEXT_PUBLIC_STORAGE_ENDPOINT || process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}${selectedLog.attachment.file}`}
+                                        src={`${process.env.NEXT_PUBLIC_STORAGE_ENDPOINT || process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}${selectedLog.attachment.file}`}
                                         alt="screenshot"
                                         className="w-full h-full object-contain"
                                     />
@@ -328,9 +353,15 @@ export default function AnalyticsPage() {
                                     <span className="text-sm text-slate-400">Tidak ada screenshot</span>
                                 )}
                             </div>
-
-                            {/* Detail */}
-                            <div className="p-6 flex flex-col gap-5 overflow-y-auto flex-1">
+                            <div className="p-6 flex flex-col gap-5 overflow-y-auto flex-1
+                                [&::-webkit-scrollbar]:w-1.5
+                                [&::-webkit-scrollbar-track]:rounded-full
+                                [&::-webkit-scrollbar-track]:bg-slate-100
+                                [&::-webkit-scrollbar-thumb]:rounded-full
+                                [&::-webkit-scrollbar-thumb]:bg-slate-300
+                                dark:[&::-webkit-scrollbar-track]:bg-white/5
+                                dark:[&::-webkit-scrollbar-thumb]:bg-white/20
+                            ">
                                 <div className="grid grid-cols-2 gap-5">
                                     <div>
                                         <p className="text-xs text-slate-400 uppercase tracking-wide mb-2">Flag</p>
@@ -353,7 +384,6 @@ export default function AnalyticsPage() {
                                         <p className="text-sm font-medium text-slate-700 dark:text-white">{formattedTimestamp(selectedLog.timestamp)}</p>
                                     </div>
                                 </div>
-
                                 {(selectedLog.attachment?.url || selectedLog.attachment?.desc) && (
                                     <div>
                                         <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Detail</p>
@@ -362,7 +392,6 @@ export default function AnalyticsPage() {
                                         </p>
                                     </div>
                                 )}
-
                                 {!["CONNECT", "DISCONNECT"].includes(selectedLog.flagKey) && (
                                     <div className="mt-auto pt-2">
                                         <ConfirmLogButton

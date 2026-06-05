@@ -120,7 +120,7 @@ const RoomTable = () => {
     const fetchRooms = async (nextPage: number) => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/rooms?page=${nextPage}&paginationLimit=15`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/rooms?page=${nextPage}&paginationLimit=15`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
@@ -158,7 +158,7 @@ const RoomTable = () => {
     const deleteRoom = async (id: string) => {
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/room/${id}`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/room/${id}`,
                 { method: "DELETE", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` } }
             )
             if (response.ok) {
@@ -193,7 +193,7 @@ const RoomTable = () => {
         setShowRoomForm(false)
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/room`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/room`,
                 { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` }, body: JSON.stringify({ title, roomId }) }
             )
             const data = await response.json()
@@ -216,7 +216,7 @@ const RoomTable = () => {
         setShowRoomForm(false)
         try {
             const jwt = await session()
-            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://192.168.43.85:5050'}/api/room`,
+            const response = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/room`,
                 { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` }, body: JSON.stringify({ id, roomId, title }) }
             )
             if (response.ok) {

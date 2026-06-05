@@ -2,16 +2,16 @@ import { WebRtcTransport, Router, WebRtcTransportOptions, AppData } from 'medias
 
 const transportOptions: WebRtcTransportOptions<AppData> = {
   listenIps: [
-    { ip: '0.0.0.0', announcedIp: process.env.ANNOUNCED_IP || '192.168.43.85' } // Replace with public IP
+    { ip: '0.0.0.0', announcedIp: process.env.ANNOUNCED_IP || '202.10.34.67' } // Replace with public IP
     // {
     //   ip: '0.0.0.0',
     //   protocol: 'udp',
-    //   announcedAddress: process.env.ANNOUNCED_IP || '192.168.43.85',
+    //   announcedAddress: process.env.ANNOUNCED_IP || '202.10.34.67',
     // },
     // {
     //   ip: '0.0.0.0',
     //   protocol: 'tcp',
-    //   announcedAddress: process.env.ANNOUNCED_IP || '192.168.43.85',
+    //   announcedAddress: process.env.ANNOUNCED_IP || '202.10.34.67',
     // }
   ],
   enableUdp: true,

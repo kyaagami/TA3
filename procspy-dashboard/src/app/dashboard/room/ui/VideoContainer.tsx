@@ -2,107 +2,102 @@
 
 import { useRouter } from "next/navigation"
 import React, { useEffect, useRef, useState } from "react"
-import { useSideBarLog } from "../../providers/SideBarLogProvider"
 import { useWebRtc } from "../../../../context/WebRtcProvider"
-import { FlagIcon, FullscreenIcon, MicIcon, MicOffIcon, TriangleAlertIcon, Volume2Icon, VolumeOffIcon } from "lucide-react"
-import AudioMeter from "../[roomId]/components/AudioMeter"
+import { FlagIcon, MicIcon, MicOffIcon, Volume2Icon, VolumeOffIcon } from "lucide-react"
 import { useLogBottomSheet } from "../../../../context/LogBottomSheetProvider"
 
-const VideoContainer = ({ consumer }) => {
+const VideoContainer = ({ consumer, displayName, displayId }: { consumer: any, displayName?: string, displayId?: string }) => {
     const router = useRouter()
     const { data, notificationCount } = useWebRtc()
     const { setData } = useLogBottomSheet()
 
-    const videoRef = useRef(null)
-    const camRef = useRef(null)
-    const audioRef = useRef(null)
-    const micRef = useRef(null)
+    const videoRef = useRef<HTMLVideoElement>(null)
+    const camRef = useRef<HTMLVideoElement>(null)
+    const audioRef = useRef<HTMLAudioElement>(null)
+    const micRef = useRef<HTMLAudioElement>(null)
 
     const [audioMute, setAudioMute] = useState(true)
     const [micMute, setMicMute] = useState(true)
-    const [micTrack, setMicTrack] = useState(null)
+    const [micTrack, setMicTrack] = useState<MediaStreamTrack | null>(null)
+    const [isSpeaking, setIsSpeaking] = useState(false)
 
-    
-    useEffect(() => {   
-        if (consumer?.consumers?.length) {
-            prepareConsume(consumer)
-        }
+    // Audio detection via AnalyserNode
+    useEffect(() => {
+        if (!micTrack) return;
+        const stream = new MediaStream([micTrack]);
+        const audioCtx = new AudioContext();
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        let animId: number;
+        const update = () => {
+            analyser.getByteTimeDomainData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                const val = (dataArray[i] - 128) / 128;
+                sum += val * val;
+            }
+            const rms = Math.sqrt(sum / dataArray.length);
+            setIsSpeaking(rms > 0.02)
+            animId = requestAnimationFrame(update);
+        };
+        update();
+        return () => { cancelAnimationFrame(animId); audioCtx.close(); };
+    }, [micTrack]);
+
+    useEffect(() => {
+        if (consumer?.consumers?.length) prepareConsume(consumer)
     }, [consumer])
 
-    const tryPlayMedia = (ref, label) => {
+    const tryPlayMedia = (ref: React.RefObject<HTMLVideoElement | HTMLAudioElement>, label: string) => {
         if (ref.current && ref.current.srcObject) {
-            ref.current.play().catch(err => {
-                console.warn(`${label} autoplay failed:`, err)
-            })
+            ref.current.play().catch(err => console.warn(`${label} autoplay failed:`, err))
         }
     }
 
-    const setStream = (ref, stream) => {
-        if (ref.current) {
-            if (ref.current.srcObject !== stream) {
-                ref.current.srcObject = null
-                ref.current.srcObject = stream
-            }
+    const setStream = (ref: React.RefObject<HTMLVideoElement | HTMLAudioElement>, stream: MediaStream) => {
+        if (ref.current && ref.current.srcObject !== stream) {
+            ref.current.srcObject = null
+            ref.current.srcObject = stream
         }
     }
 
-    const prepareConsume = (consumer) => {
-        consumer.consumers.forEach(element => {
-
+    const prepareConsume = (consumer: any) => {
+        consumer.consumers.forEach((element: any) => {
             const name = element.appData?.name
             const track = element.consumer.track
-
-            if (!track || !(track instanceof MediaStreamTrack) || track.readyState !== "live") {
-                console.warn(`Skipping invalid track for ${name}`, track)
-                return
-            }
-
+            if (!track || !(track instanceof MediaStreamTrack) || track.readyState !== "live") return
             const stream = new MediaStream([track])
-
             switch (name) {
-                case "video":
-                    setStream(videoRef, stream)
-                    tryPlayMedia(videoRef, "Video")
-                    break
-
-                case "cam":
-                    setStream(camRef, stream)
-                    tryPlayMedia(camRef, "Cam")
-                    break
-
+                case "video": setStream(videoRef, stream); tryPlayMedia(videoRef, "Video"); break
+                case "cam": setStream(camRef, stream); tryPlayMedia(camRef, "Cam"); break
                 case "audio":
                     setStream(audioRef, stream)
-                    audioRef.current.muted = audioMute
-                    tryPlayMedia(audioRef, "Audio")
-                    break
-
+                    if (audioRef.current) audioRef.current.muted = audioMute
+                    tryPlayMedia(audioRef, "Audio"); break
                 case "mic":
                     setMicTrack(track)
                     setStream(micRef, stream)
-                    micRef.current.muted = micMute
-                    tryPlayMedia(micRef, "Mic")
-                    break
-
-                default:
-                    console.warn(`Unknown track name: ${name}`)
+                    if (micRef.current) micRef.current.muted = micMute
+                    tryPlayMedia(micRef, "Mic"); break
+                default: break
             }
         })
     }
 
     useEffect(() => {
         const enableAutoplay = () => {
-            tryPlayMedia(videoRef, "Video")
-            tryPlayMedia(audioRef, "Audio")
-            tryPlayMedia(camRef, "Cam")
-            tryPlayMedia(micRef, "Mic")
+            tryPlayMedia(videoRef, "Video"); tryPlayMedia(audioRef, "Audio")
+            tryPlayMedia(camRef, "Cam"); tryPlayMedia(micRef, "Mic")
         }
         document.addEventListener("click", enableAutoplay, { once: true })
-
         return () => {
             [videoRef, camRef, audioRef, micRef].forEach(ref => {
                 if (ref.current?.srcObject) {
-                    const tracks = ref.current.srcObject.getTracks()
-                    tracks.forEach(t => t.stop())
+                    (ref.current.srcObject as MediaStream).getTracks().forEach(t => t.stop())
                     ref.current.srcObject = null
                 }
             })
@@ -112,10 +107,7 @@ const VideoContainer = ({ consumer }) => {
     const toggleAudio = () => {
         setAudioMute(prev => {
             const muted = !prev
-            if (audioRef.current) {
-                audioRef.current.muted = muted
-                if (!muted) tryPlayMedia(audioRef, "Audio")
-            }
+            if (audioRef.current) { audioRef.current.muted = muted; if (!muted) tryPlayMedia(audioRef, "Audio") }
             return muted
         })
     }
@@ -123,76 +115,76 @@ const VideoContainer = ({ consumer }) => {
     const toggleMic = () => {
         setMicMute(prev => {
             const muted = !prev
-            if (micRef.current) {
-                micRef.current.muted = muted
-                if (!muted) tryPlayMedia(micRef, "Mic")
-            }
+            if (micRef.current) { micRef.current.muted = muted; if (!muted) tryPlayMedia(micRef, "Mic") }
             return muted
         })
     }
 
-    const handleFocusMode = () => {
-        router.push(`/dashboard/room/${data.roomId}/${consumer.socketId}`)
-    }
+    const handleFocusMode = () => router.push(`/dashboard/room/${data.roomId}/${consumer.socketId}`)
+    const handleToggleLogBottomSheet = () => setData((prev: any) => ({ active: !prev.active, token: consumer.token }))
 
-    const handleToggleLogBottomSheet = () => {
-        setData(prev => ({
-            active: !prev.active,
-            token: consumer.token
-        }))
-    }
+    const flagCount = notificationCount.find((n: any) => n.token === consumer.token)?.count || 0
+    const name = displayName || consumer.proctored_user?.name || "Peserta"
+    const id = displayId || consumer.proctored_user?.identifier || consumer.token
 
     return (
-        <div className="flex max-h-[30vh]">
-            <div className="relative z-10 flex flex-col justify-between dark:bg-black border dark:border-white/10 rounded-xl p-3">
-                <div className="flex justify-between gap-3 w-full">
-                    <div className="aspect-video flex items-center justify-center bg-slate-950 rounded-lg border w-3/4 dark:border-white/10 overflow-hidden relative">
-                        <video autoPlay playsInline ref={videoRef}></video>
-                        {!videoRef.current?.srcObject && (
-                            <div className="absolute inset-0 dark:bg-black/90 text-white text-sm flex items-center justify-center">
-                                No video
-                            </div>
-                        )}
-                        <div className="absolute mt-1 bottom-2 left-3 text-xs">
-                            <h1 className="font-medium bg-slate-600/50 px-2 py-0.5 rounded text-slate-100">#id-{consumer.token}</h1>
-                        </div>
-                    </div>
+        <div className={`bg-white dark:bg-white/5 rounded-2xl border-2 transition-all duration-200 overflow-hidden
+            ${isSpeaking ? 'border-[#4F46E5] shadow-lg shadow-[#4F46E5]/20' : 'border-slate-100 dark:border-white/10'}`}>
 
-                    <div className="flex flex-col w-1/4 gap-4">
-                        <div className="group aspect-square flex items-center justify-center bg-slate-950 rounded-lg border dark:border-white/10 overflow-hidden cursor-ne-resize">
-                            <video autoPlay ref={camRef} playsInline onDoubleClick={() => camRef.current?.requestFullscreen()}></video>
-                            <span className="group-hover:block hidden absolute text-[0.6rem] -top-8 z-100 bg-white dark:bg-black/10 p-1 rounded-lg border dark:border-white/10">Double Click to Fullscreen</span>
-                        </div>
+            {/* Header */}
+            <div className="px-4 pt-4 pb-2 flex items-start justify-between">
+                <div>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-white">{name}</p>
+                    <p className="text-xs text-slate-400">ID: {id}</p>
+                </div>
+                {/* Expand icon — 4 panah keluar */}
+                <button onClick={handleFocusMode}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                        <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                    </svg>
+                </button>
+            </div>
 
-                        <div className="flex flex-col gap-2">
-                            <AudioMeter track={micTrack} />
-                            <div className="flex items-center p-2 border dark:border-white/10 rounded">
-                                <TriangleAlertIcon className="text-red-500" />
-                                <p className="text-xs ml-2 truncate">
-                                    {notificationCount.find(n => n.token === consumer.token)?.count || 0} New Flags
-                                </p>
-                            </div>
-                        </div>
-                        <audio ref={audioRef}></audio>
-                        <audio ref={micRef}></audio>
-                    </div>
+            {/* Videos */}
+            <div className="px-4 flex gap-2">
+                <div className="flex-1 aspect-video bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center relative">
+                    <video autoPlay playsInline ref={videoRef} className="w-full h-full object-cover" />
+                    {!videoRef.current?.srcObject && (
+                        <span className="absolute text-xs text-slate-400">Screen share</span>
+                    )}
+                </div>
+                <div className="w-[35%] aspect-video bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center relative">
+                    <video autoPlay playsInline ref={camRef} className="w-full h-full object-cover"
+                        onDoubleClick={() => camRef.current?.requestFullscreen()} />
+                    {!camRef.current?.srcObject && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 absolute">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    )}
                 </div>
             </div>
 
-            <div className="-ml-3 bg-white dark:bg-black/15 p-3 pl-6 w-72 z-0 border gap-4 dark:border-white/10 border-l-0 rounded-r-xl grid grid-rows-4">
-                <div className="self-center justify-self-center border dark:border-white/10 bg-white/10 aspect-square rounded flex justify-center items-center p-2 max-w-16 cursor-pointer" onClick={toggleMic}>
-                    {micMute ? <MicOffIcon /> : <MicIcon />}
-                </div>
-                <div className="self-center justify-self-center border dark:border-white/10 bg-white/10 aspect-square rounded flex justify-center items-center p-2 max-w-16 cursor-pointer" onClick={toggleAudio}>
-                    {audioMute ? <VolumeOffIcon /> : <Volume2Icon />}
-                </div>
-                <div className="relative self-center justify-self-center border dark:border-white/10 bg-white/10 aspect-square rounded flex justify-center items-center p-2 max-w-16 cursor-pointer" onClick={handleToggleLogBottomSheet}>
-                    {notificationCount.find(n => n.token === consumer.token)?.count > 0 && <div className="absolute w-3 h-3 bg-red-500 -top-1 -right-1 rounded-full"></div>}
-                    <FlagIcon />
-                </div>
-                <div className="self-center justify-self-center border dark:border-white/10 bg-white/10 aspect-square rounded flex justify-center items-center p-2 max-w-16 cursor-pointer" onClick={handleFocusMode}>
-                    <FullscreenIcon />
-                </div>
+            <audio ref={audioRef} />
+            <audio ref={micRef} />
+
+            {/* Bottom buttons — kotak */}
+            <div className="px-4 py-3 flex items-center justify-center gap-2">
+                <button onClick={handleToggleLogBottomSheet}
+                    className="relative w-10 h-10 rounded-xl bg-[#1B2A6B] hover:bg-[#243580] text-white flex items-center justify-center transition-all active:scale-95">
+                    {flagCount > 0 && <div className="absolute w-2.5 h-2.5 bg-red-500 -top-1 -right-1 rounded-full" />}
+                    <FlagIcon size={15} />
+                </button>
+                <button onClick={toggleMic}
+                    className="w-10 h-10 rounded-xl bg-[#1B2A6B] hover:bg-[#243580] text-white flex items-center justify-center transition-all active:scale-95">
+                    {micMute ? <MicOffIcon size={15} /> : <MicIcon size={15} />}
+                </button>
+                <button onClick={toggleAudio}
+                    className="w-10 h-10 rounded-xl bg-[#1B2A6B] hover:bg-[#243580] text-white flex items-center justify-center transition-all active:scale-95">
+                    {audioMute ? <VolumeOffIcon size={15} /> : <Volume2Icon size={15} />}
+                </button>
             </div>
         </div>
     )
