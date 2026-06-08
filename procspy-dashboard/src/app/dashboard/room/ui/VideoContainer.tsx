@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import React, { useEffect, useRef, useState } from "react"
 import { useWebRtc } from "../../../../context/WebRtcProvider"
-import { FlagIcon, MicIcon, MicOffIcon, Volume2Icon, VolumeOffIcon } from "lucide-react"
+import { FlagIcon, Headphones, Volume2Icon, VolumeOffIcon } from "lucide-react"
 import { useLogBottomSheet } from "../../../../context/LogBottomSheetProvider"
 
 const VideoContainer = ({ consumer, displayName, displayId }: { consumer: any, displayName?: string, displayId?: string }) => {
@@ -104,18 +104,20 @@ const VideoContainer = ({ consumer, displayName, displayId }: { consumer: any, d
         }
     }, [])
 
-    const toggleAudio = () => {
-        setAudioMute(prev => {
-            const muted = !prev
-            if (audioRef.current) { audioRef.current.muted = muted; if (!muted) tryPlayMedia(audioRef, "Audio") }
-            return muted
-        })
-    }
-
+    // toggleMic: mute/unmute mendengar mic peserta
     const toggleMic = () => {
         setMicMute(prev => {
             const muted = !prev
             if (micRef.current) { micRef.current.muted = muted; if (!muted) tryPlayMedia(micRef, "Mic") }
+            return muted
+        })
+    }
+
+    // toggleAudio: mute/unmute mendengar audio screen share peserta
+    const toggleAudio = () => {
+        setAudioMute(prev => {
+            const muted = !prev
+            if (audioRef.current) { audioRef.current.muted = muted; if (!muted) tryPlayMedia(audioRef, "Audio") }
             return muted
         })
     }
@@ -137,7 +139,6 @@ const VideoContainer = ({ consumer, displayName, displayId }: { consumer: any, d
                     <p className="text-sm font-semibold text-slate-800 dark:text-white">{name}</p>
                     <p className="text-xs text-slate-400">ID: {id}</p>
                 </div>
-                {/* Expand icon — 4 panah keluar */}
                 <button onClick={handleFocusMode}
                     className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -170,20 +171,23 @@ const VideoContainer = ({ consumer, displayName, displayId }: { consumer: any, d
             <audio ref={audioRef} />
             <audio ref={micRef} />
 
-            {/* Bottom buttons — kotak */}
+            {/* Bottom buttons */}
             <div className="px-4 py-3 flex items-center justify-center gap-2">
+                {/* Flag / Log */}
                 <button onClick={handleToggleLogBottomSheet}
                     className="relative w-10 h-10 rounded-xl bg-[#1B2A6B] hover:bg-[#243580] text-white flex items-center justify-center transition-all active:scale-95">
                     {flagCount > 0 && <div className="absolute w-2.5 h-2.5 bg-red-500 -top-1 -right-1 rounded-full" />}
                     <FlagIcon size={15} />
                 </button>
+                {/* Dengar mic peserta */}
                 <button onClick={toggleMic}
                     className="w-10 h-10 rounded-xl bg-[#1B2A6B] hover:bg-[#243580] text-white flex items-center justify-center transition-all active:scale-95">
-                    {micMute ? <MicOffIcon size={15} /> : <MicIcon size={15} />}
+                    {micMute ? <VolumeOffIcon size={15} /> : <Volume2Icon size={15} />}
                 </button>
+                {/* Dengar audio screen share */}
                 <button onClick={toggleAudio}
                     className="w-10 h-10 rounded-xl bg-[#1B2A6B] hover:bg-[#243580] text-white flex items-center justify-center transition-all active:scale-95">
-                    {audioMute ? <VolumeOffIcon size={15} /> : <Volume2Icon size={15} />}
+                    <Headphones size={15} />
                 </button>
             </div>
         </div>
