@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ChatBox from '../../../ui/ChatBox';
 import { ConsumerData, useWebRtc } from '../../../../../context/WebRtcProvider';
-import { ChevronDown, ChevronUp, Headphones, Square, Volume2Icon, VolumeOffIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, Headphones, HeadphoneOff, Square, Volume2Icon, VolumeOffIcon } from 'lucide-react';
 import LogsWindow from './components/LogsWindow';
 import { useModal } from '../../../../../context/ModalProvider';
 import AlertModal from '../../../../../components/ui/AlertModal';
@@ -79,17 +79,16 @@ export default function Page() {
     const fetchName = async (sessionToken: string) => {
         try {
             const jwt = await session();
-            const res = await fetch(
-                `${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/sessions-in-room/${roomId}?page=1&paginationLimit=100`,
-                { headers: { Authorization: `Bearer ${jwt}` } }
-            );
-            if (!res.ok) return;
-            const data = await res.json();
-            const s = data.data.find((x: any) => x.token === sessionToken);
-            if (s?.proctored_user) {
-                setDisplayName(s.proctored_user.name || '...');
-                setDisplayNRP(s.proctored_user.identifier || '-');
-            }
+            const sr = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/session-result-token/${sessionToken}`, { headers: { Authorization: `Bearer ${jwt}` } });
+            if (!sr.ok) return;
+            const sd = await sr.json();
+            const userId = sd.proctoredUserId || sd.session?.proctoredUserId;
+            if (!userId) return;
+            const ur = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-users?page=1&paginationLimit=100`, { headers: { Authorization: `Bearer ${jwt}` } });
+            if (!ur.ok) return;
+            const ud = await ur.json();
+            const u = ud.data.find((x: any) => x.id === userId);
+            if (u) { setDisplayName(u.name); setDisplayNRP(u.identifier); }
         } catch {}
     };
 
@@ -226,7 +225,7 @@ export default function Page() {
                                     {micMute ? <VolumeOffIcon size={15}/> : <Volume2Icon size={15}/>}
                                 </button>
                                 <button onClick={toggleAudio} className="w-11 h-11 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white flex items-center justify-center transition-all active:scale-95">
-                                    <Headphones size={15}/>
+                                    {audioMute ? <HeadphoneOff size={15}/> : <Headphones size={15}/>}
                                 </button>
                             </div>
                         </div>

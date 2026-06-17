@@ -7,8 +7,9 @@ const RoomInput = () => {
     const [roomCode, setRoomCode] = useState('')
     const router = useRouter()
     const handleSetRoomCode = (code) => {
-        console.info(code)
-        setRoomCode(code)
+	const noSpace = code.replace(/\s/g, '')
+        console.info(noSpace)
+        setRoomCode(noSpace)
     }
 
     const handleJoinRoom = async() => {

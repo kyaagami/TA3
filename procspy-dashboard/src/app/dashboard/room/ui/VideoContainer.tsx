@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import React, { useEffect, useRef, useState } from "react"
 import { useWebRtc } from "../../../../context/WebRtcProvider"
-import { FlagIcon, Headphones, Volume2Icon, VolumeOffIcon } from "lucide-react"
+import { FlagIcon, Headphones, HeadphoneOff, Volume2Icon, VolumeOffIcon } from "lucide-react"
 import { useLogBottomSheet } from "../../../../context/LogBottomSheetProvider"
 
 const VideoContainer = ({ consumer, displayName, displayId }: { consumer: any, displayName?: string, displayId?: string }) => {
@@ -187,7 +187,7 @@ const VideoContainer = ({ consumer, displayName, displayId }: { consumer: any, d
                 {/* Dengar audio screen share */}
                 <button onClick={toggleAudio}
                     className="w-10 h-10 rounded-xl bg-[#1B2A6B] hover:bg-[#243580] text-white flex items-center justify-center transition-all active:scale-95">
-                    <Headphones size={15} />
+                    {audioMute ? <HeadphoneOff size={15} /> : <Headphones size={15} />}
                 </button>
             </div>
         </div>

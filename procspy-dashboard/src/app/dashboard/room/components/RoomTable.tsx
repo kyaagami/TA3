@@ -91,12 +91,20 @@ const RoomFormModal = ({
                 </div>
 
                 {/* Save button */}
-                <button
-                    onClick={() => onSubmit(roomIdRef.current?.value || "", titleRef.current?.value || "")}
-                    className="w-full px-5 py-3 rounded-xl text-sm font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-lg shadow-[#4F46E5]/25 transition-all duration-200 active:scale-95"
-                >
-                    Simpan
-                </button>
+<button
+    onClick={() => {
+        const roomId = roomIdRef.current?.value || ""
+        const title = titleRef.current?.value || ""
+        if (roomId.includes(' ')) {
+            alert('Nama Kelas tidak boleh mengandung spasi!')
+            return
+        }
+        onSubmit(roomId, title)
+    }}
+    className="w-full px-5 py-3 rounded-xl text-sm font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-lg shadow-[#4F46E5]/25 transition-all duration-200 active:scale-95"
+>
+    Simpan
+</button>
             </div>
         </div>
     )
