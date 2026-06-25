@@ -10,7 +10,6 @@ const NAV_LINKS = [
   { label: "Kontak",     href: "kontak" },
 ];
 
-/* ── tiny hook: returns true once element enters viewport ── */
 function useInView() {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -26,19 +25,103 @@ function useInView() {
   return [ref, inView];
 }
 
+const FITUR = [
+  {
+    iconBg: "bg-gray-900 group-hover:bg-indigo-700",
+    icon: <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2" /></svg>,
+    title: "Monitoring Video Real-time",
+    desc: "Pantau peserta ujian secara langsung dengan teknologi streaming video berkualitas tinggi.",
+  },
+  {
+    iconBg: "bg-orange-100 group-hover:bg-orange-500",
+    icon: <svg className="w-6 h-6 text-orange-500 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>,
+    title: "Deteksi Kecurangan Otomatis",
+    desc: "Sistem otomatis yang mendeteksi perilaku mencurigakan dan aktivitas tidak wajar selama ujian.",
+  },
+  {
+    iconBg: "bg-indigo-100 group-hover:bg-indigo-700",
+    icon: <svg className="w-6 h-6 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+    title: "Laporan Komprehensif",
+    desc: "Dapatkan laporan detail tentang aktivitas ujian dan analisis perilaku peserta.",
+  },
+];
+
+function FiturCarousel() {
+  const [active, setActive] = useState(0);
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+
+  const prev = () => setActive(a => (a === 0 ? FITUR.length - 1 : a - 1));
+  const next = () => setActive(a => (a === FITUR.length - 1 ? 0 : a + 1));
+
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchMove  = (e) => { touchEndX.current = e.touches[0].clientX; };
+  const onTouchEnd   = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
+  return (
+    <div className="relative">
+      {/* Track — semua card dirender, geser pakai translateX */}
+      <div className="overflow-hidden rounded-2xl">
+        <div
+          className="flex transition-transform duration-300 ease-in-out"
+          style={{ transform: `translateX(-${active * 100}%)` }}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          {FITUR.map(({ iconBg, icon, title, desc }) => (
+            <div
+              key={title}
+              className="w-full flex-shrink-0 bg-white rounded-2xl px-6 py-8 shadow-sm border border-gray-100 select-none"
+            >
+              <div className={`w-14 h-14 ${iconBg} rounded-xl flex items-center justify-center mb-5 transition-colors`}>
+                {icon}
+              </div>
+              <h3 className="font-bold text-gray-900 text-xl mb-2">{title}</h3>
+              <p className="text-gray-500 text-base leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Prev / Next */}
+      <button onClick={prev}
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-9 h-9 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-500 hover:text-indigo-600 transition-colors z-10">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button onClick={next}
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-9 h-9 rounded-full bg-white shadow-md border border-gray-100 flex items-center justify-center text-gray-500 hover:text-indigo-600 transition-colors z-10">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+
+      {/* Dots */}
+      <div className="flex justify-center gap-2 mt-5">
+        {FITUR.map((_, i) => (
+          <button key={i} onClick={() => setActive(i)}
+            className={`h-2 rounded-full transition-all duration-300 ${i === active ? "w-6 bg-indigo-600" : "w-2 bg-gray-300"}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection]   = useState("home");
   const [scrolled, setScrolled]             = useState(false);
   const [loaded, setLoaded]                 = useState(false);
 
-  /* trigger load animation after mount */
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 50);
     return () => clearTimeout(t);
   }, []);
 
-  /* scroll tracker */
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -65,7 +148,6 @@ export default function Home() {
     }
   }, []);
 
-  /* in-view refs */
   const [fiturRef, fiturInView] = useInView();
   const [caraRef,  caraInView]  = useInView();
   const [ctaRef,   ctaInView]   = useInView();
@@ -89,18 +171,14 @@ export default function Home() {
           from { opacity:0; transform:scale(0.85); }
           to   { opacity:1; transform:scale(1); }
         }
-
-        /* paused until parent gets .loaded */
         .anim-navbar   { animation: fadeDown 0.6s cubic-bezier(.22,1,.36,1) both; animation-play-state:paused; }
         .anim-up       { animation: fadeUp   0.7s cubic-bezier(.22,1,.36,1) both; animation-play-state:paused; }
         .anim-left     { animation: fadeLeft 0.75s cubic-bezier(.22,1,.36,1) both; animation-play-state:paused; }
         .anim-scale    { animation: scaleIn  0.65s cubic-bezier(.22,1,.36,1) both; animation-play-state:paused; }
-
         .loaded .anim-navbar,
         .loaded .anim-up,
         .loaded .anim-left,
         .loaded .anim-scale { animation-play-state:running; }
-
         .d1  { animation-delay:0.08s; }
         .d2  { animation-delay:0.18s; }
         .d3  { animation-delay:0.28s; }
@@ -108,8 +186,6 @@ export default function Home() {
         .d5  { animation-delay:0.48s; }
         .d6  { animation-delay:0.58s; }
         .d7  { animation-delay:0.72s; }
-
-        /* scroll reveal */
         .reveal {
           opacity:0;
           transform:translateY(30px);
@@ -129,12 +205,12 @@ export default function Home() {
           ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100"
                      : "bg-white/80 backdrop-blur-sm border-b border-transparent"}`}
         >
-          <div className="max-w-[85%] mx-auto px-8 py-5 flex items-center justify-between">
-            <a href="#home" onClick={(e) => handleNavClick(e, "home")} className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center">
-                <img src="/image/logo.png" alt="ProcSpy Logo" className="w-6 h-6 object-contain brightness-0 invert" />
+          <div className="w-full max-w-[90%] md:max-w-[85%] mx-auto px-4 md:px-8 py-4 md:py-5 flex items-center justify-between">
+            <a href="#home" onClick={(e) => handleNavClick(e, "home")} className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-indigo-600 flex items-center justify-center">
+                <img src="/image/logo.png" alt="ProcSpy Logo" className="w-5 h-5 md:w-6 md:h-6 object-contain brightness-0 invert" />
               </div>
-              <span className="font-bold text-gray-900 text-xl">ProcSpy</span>
+              <span className="font-bold text-gray-900 text-lg md:text-xl">ProcSpy</span>
             </a>
 
             <div className="hidden md:flex items-center gap-2">
@@ -173,7 +249,7 @@ export default function Home() {
           </div>
 
           <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${mobileMenuOpen ? "max-h-72 opacity-100" : "max-h-0 opacity-0"}`}>
-            <div className="bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-1">
+            <div className="bg-white border-t border-gray-100 px-4 py-4 flex flex-col gap-1">
               {NAV_LINKS.map(({ label, href }) => {
                 const isActive = activeSection === href;
                 return (
@@ -193,95 +269,58 @@ export default function Home() {
         </nav>
 
         {/* ── HERO ── */}
-        <section id="home" className="pt-40 pb-36 px-8 max-w-[85%] mx-auto">
-          <div className="flex flex-col md:flex-row items-center gap-12">
-
-            {/* Left — staggered fade-up */}
-            <div className="flex-1">
-
-              <h1 className="text-6xl md:text-7xl font-extrabold text-gray-900 leading-tight mb-8">
+        <section id="home" className="pt-24 md:pt-40 pb-16 md:pb-36 px-4 md:px-8 w-full max-w-[90%] md:max-w-[85%] mx-auto">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-tight mb-6 md:mb-8">
                 <span className="block anim-up d2">Pengawasan Ujian</span>
                 <span className="block anim-up d3">Online Yang</span>
                 <span className="block text-indigo-600 anim-up d4">Terpercaya</span>
               </h1>
-
-              <p className="anim-up d5 text-gray-500 text-xl mb-12 leading-relaxed max-w-lg">
+              <p className="anim-up d5 text-gray-500 text-base md:text-xl mb-8 md:mb-12 leading-relaxed max-w-lg mx-auto md:mx-0">
                 Sistem monitoring ujian online untuk memastikan integritas dan keamanan ujian.
               </p>
-
-              <div className="anim-up d6 flex flex-wrap gap-5">
+              <div className="anim-up d6 flex flex-wrap justify-center md:justify-start gap-3 md:gap-5">
                 <Link href="/login"
-                  className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-9 py-4 rounded-xl transition-all hover:scale-105 shadow-lg shadow-indigo-200 inline-block text-lg">
+                  className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-6 md:px-9 py-3 md:py-4 rounded-xl transition-all hover:scale-105 shadow-lg shadow-indigo-200 inline-block text-base md:text-lg">
                   Mulai Sekarang
                 </Link>
-                <button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-9 py-4 rounded-xl transition-all hover:scale-105 text-lg">
+                <button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-6 md:px-9 py-3 md:py-4 rounded-xl transition-all hover:scale-105 text-base md:text-lg">
                   Pelajari Lebih Lanjut
                 </button>
               </div>
             </div>
-
-            {/* Right — slide from right */}
-            <div className="anim-left d4 flex-1 flex justify-center relative">
-              <div className="relative w-96 md:w-[420px]">
-                <div className="w-full aspect-[3/4] bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl overflow-hidden flex items-end justify-center shadow-xl">
-                  <div className="w-72 h-80 bg-gradient-to-t from-indigo-200 to-transparent rounded-t-full" />
-                </div>
-                <div className="anim-scale d7 absolute bottom-8 right-0 translate-x-8 bg-white rounded-2xl shadow-lg px-5 py-4 flex items-center gap-4 min-w-max">
-                  <div className="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-extrabold text-gray-900 leading-none">98</p>
-                    <p className="text-sm text-gray-400 mt-0.5">Online Student</p>
-                  </div>
-                  <div className="flex -space-x-2 ml-1">
-                    {["bg-indigo-400","bg-yellow-400","bg-pink-400","bg-green-400"].map((c, i) => (
-                      <div key={i} className={`w-9 h-9 rounded-full ${c} border-2 border-white`} />
-                    ))}
-                  </div>
-                </div>
+            <div className="anim-left d4 flex-1 flex justify-center relative w-full">
+              <div className="relative w-64 sm:w-80 md:w-96 lg:w-[420px]">
+                <img
+                  src="/image/mascot-proctor.png"
+                  alt="Pengawas ujian ProcSpy"
+                  className="w-full h-auto object-contain"
+                />
               </div>
             </div>
           </div>
         </section>
 
         {/* ── FITUR UNGGULAN ── */}
-        <section id="fitur" className="py-36 px-8 bg-gray-50" ref={fiturRef}>
-          <div className="max-w-[85%] mx-auto">
-            <div className={`text-center mb-14 reveal ${fiturInView ? "in-view" : ""}`}>
-              <h2 className="text-5xl font-extrabold text-gray-900 mb-5">Fitur Unggulan</h2>
-              <p className="text-gray-500 text-lg max-w-md mx-auto">
+        <section id="fitur" className="py-16 md:py-36 px-4 md:px-8 bg-gray-50" ref={fiturRef}>
+          <div className="w-full max-w-[90%] md:max-w-[85%] mx-auto">
+            <div className={`text-center mb-10 md:mb-14 reveal ${fiturInView ? "in-view" : ""}`}>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4 md:mb-5">Fitur Unggulan</h2>
+              <p className="text-gray-500 text-base md:text-lg max-w-md mx-auto">
                 Teknologi canggih untuk pengawasan ujian online yang komprehensif dan efektif
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  sd: "sd1",
-                  iconBg: "bg-gray-900 group-hover:bg-indigo-700",
-                  icon: <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2" /></svg>,
-                  title: "Monitoring Video Real-time",
-                  desc: "Pantau peserta ujian secara langsung dengan teknologi streaming video berkualitas tinggi.",
-                },
-                {
-                  sd: "sd2",
-                  iconBg: "bg-orange-100 group-hover:bg-orange-500",
-                  icon: <svg className="w-6 h-6 text-orange-500 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>,
-                  title: "Deteksi Kecurangan Otomatis",
-                  desc: "Sistem otomatis yang mendeteksi perilaku mencurigakan dan aktivitas tidak wajar selama ujian.",
-                },
-                {
-                  sd: "sd3",
-                  iconBg: "bg-indigo-100 group-hover:bg-indigo-700",
-                  icon: <svg className="w-6 h-6 text-indigo-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-                  title: "Laporan Komprehensif",
-                  desc: "Dapatkan laporan detail tentang aktivitas ujian dan analisis perilaku peserta.",
-                },
-              ].map(({ sd, iconBg, icon, title, desc }) => (
-                <div key={title} className={`reveal ${sd} ${fiturInView ? "in-view" : ""} bg-white rounded-2xl px-10 py-12 shadow-sm hover:shadow-md transition-all border border-gray-100 group`}>
+            {/* Mobile: Carousel */}
+            <div className={`md:hidden px-6 reveal ${fiturInView ? "in-view" : ""}`}>
+              <FiturCarousel />
+            </div>
+
+            {/* Desktop: Grid */}
+            <div className="hidden md:grid grid-cols-3 gap-8">
+              {FITUR.map(({ iconBg, icon, title, desc }, i) => (
+                <div key={title} className={`reveal sd${i+1} ${fiturInView ? "in-view" : ""} bg-white rounded-2xl px-10 py-12 shadow-sm hover:shadow-md transition-all border border-gray-100 group`}>
                   <div className={`w-16 h-16 ${iconBg} rounded-xl flex items-center justify-center mb-6 transition-colors`}>
                     {icon}
                   </div>
@@ -294,16 +333,15 @@ export default function Home() {
         </section>
 
         {/* ── CARA KERJA ── */}
-        <section id="cara-kerja" className="py-36 px-8" ref={caraRef}>
-          <div className="max-w-[85%] mx-auto">
-            <div className={`text-center mb-16 reveal ${caraInView ? "in-view" : ""}`}>
-              <h2 className="text-5xl font-extrabold text-gray-900 mb-5">Cara Kerja</h2>
-              <p className="text-gray-500 text-lg max-w-md mx-auto">
+        <section id="cara-kerja" className="py-16 md:py-36 px-4 md:px-8" ref={caraRef}>
+          <div className="w-full max-w-[90%] md:max-w-[85%] mx-auto">
+            <div className={`text-center mb-10 md:mb-16 reveal ${caraInView ? "in-view" : ""}`}>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4 md:mb-5">Cara Kerja</h2>
+              <p className="text-gray-500 text-base md:text-lg max-w-md mx-auto">
                 Proses sederhana untuk memulai pengawasan ujian online yang efektif
               </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 relative">
               <div className="hidden md:block absolute top-6 left-1/4 right-1/4 h-0.5 bg-yellow-200" />
               {[
                 { step:"1", title:"Daftar & Setup",     sd:"sd1" },
@@ -311,11 +349,11 @@ export default function Home() {
                 { step:"3", title:"Monitor & Analisis",  sd:"sd3" },
               ].map(({ step, title, sd }) => (
                 <div key={step} className={`reveal ${sd} ${caraInView ? "in-view" : ""} flex flex-col items-center text-center`}>
-                  <div className="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center text-gray-900 font-extrabold text-2xl mb-6 shadow-lg shadow-yellow-100 z-10">
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-yellow-400 flex items-center justify-center text-gray-900 font-extrabold text-xl md:text-2xl mb-5 md:mb-6 shadow-lg shadow-yellow-100 z-10">
                     {step}
                   </div>
-                  <h3 className="font-bold text-gray-900 text-2xl mb-3">{title}</h3>
-                  <p className="text-gray-500 text-lg leading-relaxed max-w-sm">
+                  <h3 className="font-bold text-gray-900 text-xl md:text-2xl mb-2 md:mb-3">{title}</h3>
+                  <p className="text-gray-500 text-base md:text-lg leading-relaxed max-w-sm">
                     Proses sederhana untuk memulai pengawasan ujian online yang efektif
                   </p>
                 </div>
@@ -325,21 +363,21 @@ export default function Home() {
         </section>
 
         {/* ── CTA BANNER ── */}
-        <section className="py-28 px-6 bg-indigo-900" ref={ctaRef}>
+        <section className="py-16 md:py-28 px-4 md:px-6 bg-indigo-900" ref={ctaRef}>
           <div className={`max-w-4xl mx-auto text-center reveal ${ctaInView ? "in-view" : ""}`}>
-            <h2 className="text-5xl md:text-6xl font-extrabold text-white mb-5 leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 md:mb-5 leading-tight">
               Siap Memulai{" "}
               <span className="text-yellow-400">Pengawasan Ujian Online?</span>
             </h2>
-            <p className="text-indigo-200 text-lg mb-12 leading-relaxed">
+            <p className="text-indigo-200 text-base md:text-lg mb-8 md:mb-12 leading-relaxed">
               Bergabunglah dengan ribuan institusi pendidikan yang telah mempercayai ProcSpy untuk ujian online mereka
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
               <Link href="/login"
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-10 py-4 rounded-xl transition-all hover:scale-105 inline-block text-lg">
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-7 md:px-10 py-3 md:py-4 rounded-xl transition-all hover:scale-105 inline-block text-base md:text-lg">
                 Masuk ke Akun
               </Link>
-              <Link href="/register" className="border-2 border-white text-white font-semibold px-10 py-4 rounded-xl hover:bg-white hover:text-indigo-900 transition-all hover:scale-105 text-lg">
+              <Link href="/register" className="border-2 border-white text-white font-semibold px-7 md:px-10 py-3 md:py-4 rounded-xl hover:bg-white hover:text-indigo-900 transition-all hover:scale-105 text-base md:text-lg">
                 Hubungi Kami
               </Link>
             </div>
@@ -347,9 +385,9 @@ export default function Home() {
         </section>
 
         {/* ── FOOTER ── */}
-        <footer id="kontak" className="py-14 px-8 bg-white border-t border-gray-100">
-          <div className="max-w-[85%] mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+        <footer id="kontak" className="py-10 md:py-14 px-4 md:px-8 bg-white border-t border-gray-100">
+          <div className="w-full max-w-[90%] md:max-w-[85%] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 mb-8 md:mb-10">
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
@@ -357,7 +395,7 @@ export default function Home() {
                   </div>
                   <span className="font-bold text-gray-900 text-lg">ProcSpy</span>
                 </div>
-                <p className="text-gray-500 text-base leading-relaxed max-w-sm">
+                <p className="text-gray-500 text-sm md:text-base leading-relaxed max-w-sm">
                   Solusi pengawasan ujian online terdepan dengan teknologi terkini untuk memastikan integritas ujian online
                 </p>
               </div>

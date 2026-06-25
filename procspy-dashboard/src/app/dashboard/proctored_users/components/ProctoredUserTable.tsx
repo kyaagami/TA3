@@ -364,7 +364,7 @@ const ProctoredUserTable = () => {
     const fetchProctoredUsers = async (nextPage: number) => {
         try {
             const token = await session();
-            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-users?page=${nextPage}&paginationLimit=20`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_ENDPOINT || 'https://202.10.34.67:5050'}/api/proctored-users?page=${nextPage}&paginationLimit=100`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
@@ -491,8 +491,8 @@ const ProctoredUserTable = () => {
         "default": "Default",
         "nama-az": "Nama A→Z",
         "nama-za": "Nama Z→A",
-        "nrp-az":  "NRP A→Z",
-        "nrp-za":  "NRP Z→A",
+        "nrp-az":  "NRP Terkecil",
+        "nrp-za":  "NRP Terbesar",
     }
 
     const filtered = proctoredUsers
@@ -603,7 +603,7 @@ const ProctoredUserTable = () => {
                         <table className="min-w-full">
                             <thead className="sticky top-0 bg-white dark:bg-[#0f0f13] border-b border-slate-100 dark:border-white/10 z-10">
                                 <tr>
-                                    {["Nama", "NRP", "Email", "Generate Session", "Sessions", "Action"].map(h => (
+                                    {["Nama", "NRP", "Email", "Generate Session", "Kelola"].map(h => (
                                         <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{h}</th>
                                     ))}
                                 </tr>
@@ -611,7 +611,7 @@ const ProctoredUserTable = () => {
                             <tbody>
                                 {filtered.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="text-center py-12 text-slate-400 text-sm">
+                                        <td colSpan={5} className="text-center py-12 text-slate-400 text-sm">
                                             {search ? "Tidak ada hasil untuk pencarian ini" : "Tidak ada data"}
                                         </td>
                                     </tr>
@@ -675,19 +675,20 @@ const ProctoredUserTable = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <button onClick={() => router.push(pathname + "/" + user.id + "/sessions/")}
-                                                className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/10 hover:bg-[#4F46E5] text-slate-600 dark:text-slate-300 hover:text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-all">
-                                                <HistoryIcon size={12} /> Riwayat
-                                            </button>
-                                        </td>
-                                        <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
+                                                <button onClick={() => router.push(pathname + "/" + user.id + "/sessions/")}
+                                                    className="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:border-[#4F46E5] hover:text-[#4F46E5] text-slate-400 transition-all"
+                                                    title="Riwayat Session">
+                                                    <HistoryIcon size={14} />
+                                                </button>
                                                 <button onClick={() => { setEditingUser(user); setShowUserForm(true) }}
-                                                    className="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:border-[#4F46E5] hover:text-[#4F46E5] text-slate-400 transition-all">
+                                                    className="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:border-[#4F46E5] hover:text-[#4F46E5] text-slate-400 transition-all"
+                                                    title="Edit">
                                                     <Pencil size={14} />
                                                 </button>
                                                 <button onClick={() => handleDeleteProctoredUser(user.id)}
-                                                    className="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:border-red-400 hover:text-red-500 text-slate-400 transition-all">
+                                                    className="p-2 rounded-lg border border-slate-200 dark:border-white/10 hover:border-red-400 hover:text-red-500 text-slate-400 transition-all"
+                                                    title="Hapus">
                                                     <Trash2 size={14} />
                                                 </button>
                                             </div>

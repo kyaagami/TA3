@@ -139,9 +139,19 @@ export default function AnalyticsPage() {
     return (
         <div className="p-8 bg-[#F7F8FA] dark:bg-transparent flex flex-col gap-6 overflow-hidden" style={{ height: '100vh' }}>
 
-            <h1 className="font-bold text-2xl text-slate-800 dark:text-white flex-shrink-0">
-                {userName || "..."} / Analytics
-            </h1>
+            <div className="flex items-center gap-3 flex-shrink-0">
+                <button
+                    onClick={() => router.back()}
+                    title="Kembali"
+                    aria-label="Kembali"
+                    className="flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-colors duration-150 active:scale-95"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <h1 className="font-bold text-2xl text-slate-800 dark:text-white">
+                    {userName || "..."} / Analytics
+                </h1>
+            </div>
 
             {/* 3 panel — responsif, tinggi sisa viewport */}
             <div className="flex gap-4 min-h-0 flex-1">

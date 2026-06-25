@@ -304,14 +304,14 @@ const UserSessionTable = () => {
                         <table className="min-w-full">
                             <thead className="sticky top-0 bg-white dark:bg-[#0f0f13] border-b border-slate-100 dark:border-white/10 z-10">
                                 <tr>
-                                    {["Connection", "Session Token", "Nama", "NRP", "Start Time", "End Time", "Session Status", "Fraud Status", "Analytics", "Action"].map(h => (
+                                    {["Connection", "Session Token", "Nama", "NRP", "Start Time", "End Time", "Session Status", "Fraud Status", "Kelola"].map(h => (
                                         <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtered.length === 0 ? (
-                                    <tr><td colSpan={10} className="text-center py-12 text-slate-400 text-sm">Tidak ada peserta</td></tr>
+                                    <tr><td colSpan={9} className="text-center py-12 text-slate-400 text-sm">Tidak ada peserta</td></tr>
                                 ) : filtered.map((s) => {
                                     const fraudLevel = s.session_result ? calcFraudLevel(s.session_result.totalSeverity) : FraudLevel.LOW
                                     return (
@@ -336,16 +336,16 @@ const UserSessionTable = () => {
                                                 <span className={`${fraudLevelBadge[fraudLevel]} text-xs font-medium px-3 py-1 rounded-lg whitespace-nowrap`}>{fraudLevel}</span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <button onClick={() => router.push(pathname + "/analytics/" + s.token)}
-                                                    className="p-2 rounded-lg border border-blue-200 dark:border-blue-500/30 hover:bg-blue-500 hover:border-blue-500 text-blue-500 hover:text-white transition-all">
-                                                    <ChartLineIcon size={14} />
-                                                </button>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <button onClick={() => handleAbortSession(s.token, "completed")}
-                                                    className="p-2 rounded-lg border border-red-200 dark:border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-500 hover:text-white transition-all">
-                                                    <Square size={14} fill="currentColor" />
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => router.push(pathname + "/analytics/" + s.token)} title="Lihat Analytics"
+                                                        className="p-2 rounded-lg border border-blue-200 dark:border-blue-500/30 hover:bg-blue-500 hover:border-blue-500 text-blue-500 hover:text-white transition-all">
+                                                        <ChartLineIcon size={14} />
+                                                    </button>
+                                                    <button onClick={() => handleAbortSession(s.token, "completed")} title="Akhiri Sesi"
+                                                        className="p-2 rounded-lg border border-red-200 dark:border-red-500/30 hover:bg-red-500 hover:border-red-500 text-red-500 hover:text-white transition-all">
+                                                        <Square size={14} fill="currentColor" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     )
