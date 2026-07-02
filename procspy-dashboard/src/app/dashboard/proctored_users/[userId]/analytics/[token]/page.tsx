@@ -153,7 +153,7 @@ export default function AnalyticsPage() {
                 </h1>
             </div>
 
-            {/* 3 panel — responsif, tinggi sisa viewport */}
+            {/* 3 panel */}
             <div className="flex gap-4 min-h-0 flex-1">
 
                 {/* ── KIRI ── */}
@@ -315,11 +315,14 @@ export default function AnalyticsPage() {
                             <button
                                 key={log.id}
                                 onClick={() => setSelectedLog(log)}
-                                className={`w-full px-5 py-3.5 flex items-start gap-3 border-b border-slate-50 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left ${selectedLog?.id === log.id ? 'bg-indigo-50 dark:bg-[#4F46E5]/10 border-l-2 border-l-[#4F46E5]' : ''}`}
+                                className={`w-full px-5 py-3.5 flex items-center gap-3 border-b border-slate-50 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left ${selectedLog?.id === log.id ? 'bg-indigo-50 dark:bg-[#4F46E5]/10 border-l-2 border-l-[#4F46E5]' : ''}`}
                             >
+                                {/* Severity box */}
                                 <div className={`w-8 h-8 rounded-lg ${severityBg(log.flag?.severity ?? 0)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
                                     {log.flag?.severity ?? 0}
                                 </div>
+
+                                {/* Flag info */}
                                 <div className="flex-1 min-w-0">
                                     <span className="text-xs font-semibold bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 px-2 py-0.5 rounded-lg">
                                         {log.flagKey}
@@ -327,6 +330,19 @@ export default function AnalyticsPage() {
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
                                         {log.flag?.label || log.flagKey}
                                     </p>
+                                </div>
+
+                                {/* ── Indikator review ── */}
+                                <div className="flex-shrink-0">
+                                    {log.logType && log.logType !== "System" ? (
+                                        log.logType === "True" ? (
+                                            <span title="Dikonfirm: Kecurangan" className="block w-3 h-3 rounded-full bg-green-500" />
+                                        ) : (
+                                            <span title="Dikonfirm: Bukan Kecurangan" className="block w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500" />
+                                        )
+                                    ) : (
+                                        <span title="Belum direview" className="block w-3 h-3 rounded-full bg-slate-200 dark:bg-white/10" />
+                                    )}
                                 </div>
                             </button>
                         ))}
